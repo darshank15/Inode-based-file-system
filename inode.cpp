@@ -9,7 +9,20 @@ using namespace std;
 
 /******************************************************************************/
 static int active = 0;  /* is the virtual disk open (active) */
-static int handle;      /* file handle to virtual disk       */
+static int handle;
+
+char disk_name[50],filename[30];
+struct super_block sb;
+struct file_to_inode_mapping file_inode_mapping_arr[NO_OF_INODES];
+struct inode inode_arr[NO_OF_INODES];
+
+map <string,int> dir_map; //file name as key maps to inode (value)
+vector<int> free_inode_vector; // denote free inodes
+vector<int> free_data_block_vector; // denote free data blocks
+vector<int> free_filedescriptor_vector; // denote free filedescriptor.
+int openfile_count=0 ; //keeps track of number of files opened.
+map <int,pair<int,int> > file_descriptor_map;	//Stores files Descriptor as key and corresponding Inode number(First) and file pointer.
+
 
 /******************************************************************************/
 int create_disk(char *name)

@@ -4,7 +4,7 @@
 /******************************************************************************/
 
 // total disk size - 512MB
-// total no  of blocks = 512M/4096 = 131072
+// total no of blocks = 512M/4096 = 131072
 
 #define DISK_BLOCKS 131072        /* number of blocks on the disk                */
 #define BLOCK_SIZE 4096           /* block size on "disk"                        */
@@ -26,7 +26,7 @@ struct file_to_inode_mapping // total size = 34Byte
 };
 struct super_block /* super block structure */
 {
-    /*  Total size of struct superblock is 5*4(int) + 2*131072(char array) =  262164Byte
+    /*  Total size of struct superblock is 5*4(int) + 2*131072(bool array) =  262164Byte
     No Of Blocks = 262164/4096 = 65 blocks */
     int no_of_blocks_used_by_superblock = ceil(((float)sizeof(super_block)) / BLOCK_SIZE); // 65
 
@@ -48,6 +48,25 @@ struct super_block /* super block structure */
 /******************************************************************************/
 
 /******************************************************************************/
+// Data Structure to be used.
+
+extern char disk_name[50],filename[30];
+extern struct super_block sb;
+extern struct file_to_inode_mapping file_inode_mapping_arr[NO_OF_INODES];
+extern struct inode inode_arr[NO_OF_INODES];
+
+extern map <string,int> dir_map; //file name as key maps to inode (value)
+extern vector<int> free_inode_vector; // denote free inodes
+extern vector<int> free_data_block_vector; // denote free data blocks
+extern vector<int> free_filedescriptor_vector; // denote free filedescriptor.
+extern int openfile_count=0 ; //keeps track of number of files opened.
+extern map <int,pair<int,int> > file_descriptor_map;	//Stores files Descriptor as key and corresponding Inode number(First) and file pointer.
+
+/******************************************************************************/
+
+/******************************************************************************/
+// Methods to be implemented.
+
 int create_disk(char *name); /* create an empty, virtual disk file          */
 int mount_disk(char *name);  /* open a virtual disk (file)                  */
 int unmount_disk();          /* close a previously opened disk (file)       */
