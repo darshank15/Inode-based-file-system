@@ -205,6 +205,33 @@ int unmount_disk()
     return 1;
 }
 
+int block_read(int block, char *buf)
+{
+  if (!active) {
+    fprintf(stderr, "block_read: disk not active\n");
+    return -1;
+  }
+
+  if ((block < 0) || (block >= DISK_BLOCKS))
+  {
+    fprintf(stderr, "block_read: block index out of bounds\n");
+    return -1;
+  }
+    
+  if (fseek(diskptr, block * BLOCK_SIZE, SEEK_SET) < 0)
+  {
+    perror("block_read: failed to lseek");
+    return -1;
+  }
+
+  if (fread(buf, sizeof(char), BLOCK_SIZE,diskptr) < 0)
+  {
+    perror("block_read: failed to read");
+    return -1;
+  }
+
+  return 0;
+}
 int main()
 {
     while(1)

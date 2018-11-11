@@ -73,7 +73,7 @@ extern FILE *diskptr;
 int create_disk(char *name); /* create an empty, virtual disk file          */
 int mount_disk(char *name);  /* open a virtual disk (file)                  */
 int unmount_disk();          /* close a previously opened disk (file)       */
-
+int block_read(int block, char *buf); /*  */
 /******************************************************************************/
 
 #endif
