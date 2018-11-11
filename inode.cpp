@@ -115,10 +115,10 @@ int block_write(int block, char *buf)
 
 int block_read(int block, char *buf)
 {
-  if (!active) {
-    fprintf(stderr, "block_read: disk not active\n");
-    return -1;
-  }
+  // if (!active) {
+  //   fprintf(stderr, "block_read: disk not active\n");
+  //   return -1;
+  // }
 
   if ((block < 0) || (block >= DISK_BLOCKS)) {
     fprintf(stderr, "block_read: block index out of bounds\n");
