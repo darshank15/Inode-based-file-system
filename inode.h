@@ -3,7 +3,7 @@
 
 /******************************************************************************/
 
-// total disk size - 512MB
+// total disk size = 512MB
 // total no of blocks = 512M/4096 = 131072
 
 #define DISK_BLOCKS 131072        /* number of blocks on the disk                */
@@ -33,6 +33,9 @@ struct super_block /* super block structure */
     /* Total size required for mapping between filename and inode is 34*131072/4096 = 1088  */
     int no_of_blocks_used_by_file_inode_mapping = (sizeof(struct file_to_inode_mapping) * NO_OF_INODES) / BLOCK_SIZE; // 32
 
+    /* It denotes the position from where inode starts. */
+    int starting_index_of_inodes = no_of_blocks_used_by_superblock + no_of_blocks_used_by_file_inode_mapping;
+
     /*  Total size required to store all inodes = 131072*256 = 8192   */
     int no_of_blocks_used_to_store_inodes = ceil(((float)(NO_OF_INODES * sizeof(struct inode))) / BLOCK_SIZE); // 8192
 
@@ -61,7 +64,7 @@ extern vector<int> free_data_block_vector; // denote free data blocks
 extern vector<int> free_filedescriptor_vector; // denote free filedescriptor.
 extern int openfile_count=0 ; //keeps track of number of files opened.
 extern map <int,pair<int,int> > file_descriptor_map;	//Stores files Descriptor as key and corresponding Inode number(First) and file pointer.
-
+extern FILE *diskptr;
 /******************************************************************************/
 
 /******************************************************************************/
