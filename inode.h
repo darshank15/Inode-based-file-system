@@ -53,17 +53,17 @@ struct super_block /* super block structure */
 /******************************************************************************/
 // Data Structure to be used.
 
-extern char disk_name[50],filename[30];
+extern char disk_name[50], filename[30];
 extern struct super_block sb;
 extern struct file_to_inode_mapping file_inode_mapping_arr[NO_OF_INODES];
 extern struct inode inode_arr[NO_OF_INODES];
 
-extern map <string,int> dir_map; //file name as key maps to inode (value)
-extern vector<int> free_inode_vector; // denote free inodes
-extern vector<int> free_data_block_vector; // denote free data blocks
-extern vector<int> free_filedescriptor_vector; // denote free filedescriptor.
-extern int openfile_count=0 ; //keeps track of number of files opened.
-extern map <int,pair<int,int> > file_descriptor_map;	//Stores files Descriptor as key and corresponding Inode number(First) and file pointer.
+extern map<string, int> dir_map;                     //file name as key maps to inode (value)
+extern vector<int> free_inode_vector;                // denote free inodes
+extern vector<int> free_data_block_vector;           // denote free data blocks
+extern vector<int> free_filedescriptor_vector;       // denote free filedescriptor.
+extern int openfile_count = 0;                       //keeps track of number of files opened.
+extern map<int, pair<int, int>> file_descriptor_map; //Stores files Descriptor as key and corresponding Inode number(First) and file pointer.
 extern FILE *diskptr;
 /******************************************************************************/
 
@@ -74,10 +74,6 @@ int create_disk(char *name); /* create an empty, virtual disk file          */
 int mount_disk(char *name);  /* open a virtual disk (file)                  */
 int unmount_disk();          /* close a previously opened disk (file)       */
 
-int block_write(int block, char *buf);
-/* write a block of size BLOCK_SIZE to disk    */
-int block_read(int block, char *buf);
-/* read a block of size BLOCK_SIZE from disk   */
 /******************************************************************************/
 
 #endif
