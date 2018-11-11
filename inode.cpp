@@ -12,7 +12,7 @@ static int active = 0;  /* is the virtual disk open (active) */
 static int handle;      /* file handle to virtual disk       */
 
 /******************************************************************************/
-int make_disk(char *name)
+int create_disk(char *name)
 { 
   int f, cnt;
   char buf[BLOCK_SIZE];
@@ -36,7 +36,7 @@ int make_disk(char *name)
   return 0;
 }
 
-int open_disk(char *name)
+int mount_disk(char *name)
 {
   int f;
 
@@ -61,7 +61,7 @@ int open_disk(char *name)
   return 0;
 }
 
-int close_disk()
+int unmount_disk()
 {
   if (!active) {
     fprintf(stderr, "close_disk: no open disk\n");
@@ -131,8 +131,8 @@ int main()
 	cin>>s;
 	char *ab = new char[s.length()+1];
 	strcpy(ab,s.c_str());
-	make_disk(ab);
-	open_disk(ab);
+	create_disk(ab);
+	mount_disk(ab);
 	int x;
 	while(1)
 	{
