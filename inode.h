@@ -19,6 +19,10 @@ using namespace std;
 #define NO_OF_INODES 78644       /* In 60% possible number of inodes. */
 #define NO_OF_FILE_DESCRIPTORS 32 /* this is predefined */
 
+// #define DISK_BLOCKS 100        /* number of blocks on the disk                */
+// #define BLOCK_SIZE 512           /* block size on "disk"                        */
+// #define NO_OF_INODES 25       /* In 60% possible number of inodes. */
+// #define NO_OF_FILE_DESCRIPTORS 32 /* this is predefined */
 /******************************************************************************/
 struct inode // total size = 256Byte (Estimated in worst case)
 {
@@ -27,7 +31,7 @@ struct inode // total size = 256Byte (Estimated in worst case)
     int filesize;
     int pointer[12]; /* 10 direct pointers, 1 single indirect, 1 double indirect pointer */
 };
-struct file_to_inode_mapping // total size = 34Byte
+struct file_to_inode_mapping // total size = 36Byte
 {
     char file_name[30]; // fileName
     int inode_num;      // inode number
@@ -39,7 +43,7 @@ struct super_block /* super block structure */
     int no_of_blocks_used_by_superblock = ceil(((float)sizeof(super_block)) / BLOCK_SIZE); // 65
 
     /* Total size required for mapping between filename and inode is 36*131072/4096 = 1152  */
-    int no_of_blocks_used_by_file_inode_mapping = (sizeof(struct file_to_inode_mapping) * NO_OF_INODES) / BLOCK_SIZE; // 32
+    int no_of_blocks_used_by_file_inode_mapping = ceil(((float)sizeof(struct file_to_inode_mapping) * NO_OF_INODES) / BLOCK_SIZE); // 32
 
     /* It denotes the position from where inode starts. 1217 */
     int starting_index_of_inodes = no_of_blocks_used_by_superblock + no_of_blocks_used_by_file_inode_mapping;

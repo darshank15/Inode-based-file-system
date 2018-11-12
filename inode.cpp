@@ -83,9 +83,37 @@ int create_disk(char *disk_name)
     return 1;
 }
 
+void printall()
+{
+    cout<<"File-inode-Mapping"<<endl;
+    for(auto it : file_inode_mapping_arr)
+    {
+        cout<<it.file_name<<endl;
+        cout<<it.inode_num<<endl;
+        cout<<"---------"<<endl;
+    }
+    cout<<"Freeinode vector"<<endl;
+    for(auto it : free_inode_vector)
+    {
+        cout<<it<<endl;
+        cout<<"---------"<<endl;
+    }
+    cout<<"File-data-vector"<<endl;
+    for(auto it : free_data_block_vector)
+    {
+        cout<<it<<endl;
+        cout<<"---------"<<endl;
+    }
+}
+
 int mount_disk(char *name)
 {
     diskptr = fopen(disk_name, "rb+");
+    if (diskptr == NULL)
+    {
+        cout << "Disk does not exist :(" << endl;
+        return 0;
+    }
     int len;
     /* retrieve super block from virtual disk and store into global struct super_block sb */
     char sb_buff[sizeof(sb)];
@@ -176,7 +204,7 @@ int unmount_disk()
     fwrite(sb_buff, sizeof(char), sizeof(sb), diskptr);
 
     /* storing file_inode mapping after super block into virtual disk */
-    fseek(diskptr, (sb.starting_index_of_data_blocks) * BLOCK_SIZE, SEEK_SET);
+    fseek(diskptr, (sb.no_of_blocks_used_by_superblock) * BLOCK_SIZE, SEEK_SET);
     len = sizeof(file_inode_mapping_arr);
     char dir_buff[len];
     memset(dir_buff, 0, len);
@@ -244,21 +272,28 @@ int user_handle()
         switch (choice)
         {
         case 1:
-            cout<<"Enter filename to create"<<endl;
-            cin>>filename;
+            cout << "Enter filename to create" << endl;
+            cin >> filename;
             create_file(filename);
             break;
         case 2:
+            cout << "Enter filename to open" << endl;
+            cin >> filename;
+            open_file(filename);
             break;
         case 3:
             break;
         case 4:
             break;
         case 5:
+            cout << "Enter filedescriptor to close" << endl;
+            int fd;
+            cin >> fd;
+            close_file(fd);
             break;
         case 6:
-            cout<<"Enter filename to delete"<<endl;
-            cin>>filename;
+            cout << "Enter filename to delete" << endl;
+            cin >> filename;
             delete_file(filename);
             break;
         case 7:
@@ -287,8 +322,10 @@ int main()
             create_disk(disk_name);
             break;
         case 2:
-            mount_disk(disk_name);
-            user_handle();
+            if (mount_disk(disk_name))
+            {
+                user_handle();
+            }
             break;
         case 9:
             break;
