@@ -81,6 +81,8 @@ extern FILE *diskptr;
 int create_disk(char *name); /* create an empty, virtual disk file          */
 int mount_disk(char *name);  /* open a virtual disk (file)                  */
 int unmount_disk();          /* close a previously opened disk (file)       */
+int open_file(char *name);   /* open file to get its file descriptor        */
+int close_file(int fd);      /* close the file                              */
 int block_read(int block, char *buf); /*  */
 int create_file(char *name); /* to create file */
 int delete_file(char *name); /* to delete file */

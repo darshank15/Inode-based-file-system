@@ -7,21 +7,21 @@ int create_file(char *name)
     if (dir_map.find(filename) != dir_map.end())
     {
         cout << "Create File Error : File already present !!!" << endl;
-        return 0;
+        return -1;
     }
 
     //check if inode are available
     if (free_inode_vector.size() == 0)
     {
         cout << "Create File Error : No more Inodes available" << endl;
-        return 0;
+        return -1;
     }
 
     //check if datablock are available
     if (free_data_block_vector.size() == 0)
     {
         cout << "Create File Error : No more DataBlock available" << endl;
-        return 0;
+        return -1;
     }
 
     //get next free inode and datablock number
@@ -51,7 +51,7 @@ int delete_file(char *name)
     if (dir_map.find(filename) == dir_map.end())
     {
         cout << "Delete File Error : File doesn't exist !!!" << endl;
-        return 0;
+        return -1;
     }
 
     //getting inode of file
@@ -62,7 +62,7 @@ int delete_file(char *name)
         if (file_descriptor_map.find(i) != file_descriptor_map.end() && file_descriptor_map[i].first == cur_inode)
         {
             cout << "Delete File Error : File is opened, Can not delete an opened file !!!" << endl;
-            return 0;
+            return -1;
         }
     }
 
@@ -176,4 +176,48 @@ int delete_file(char *name)
 
     return 1;
 
+}
+
+int open_file(char *name)
+{
+    string filename=string(name);
+    if(dir_map.find(filename)==dir_map.end())
+    {
+        cout<<"Open File Error : File not found !!!"<<endl;
+        return -1;
+    }
+
+    if(free_filedescriptor_vector.size()==0)
+    {
+        cout<<"Open File Error : File descriptor not available !!!"<<endl;
+        return -1;
+    }
+    
+    int cur_inode = dir_map[filename];
+    int fd = free_filedescriptor_vector.back();
+    free_filedescriptor_vector.pop_back();
+
+    file_descriptor_map[fd].first = cur_inode;
+    file_descriptor_map[fd].second = 0;
+    openfile_count++;
+
+    cout<<"File "<<filename<<" opened with file descriptor  : "<<fd<<endl;
+
+    return fd;
+
+}
+
+int close_file(int fd)
+{
+    if(file_descriptor_map.find(fd)==file_descriptor_map.end())
+    {
+        cout<<"close File Error : file is not opened yet !!!"<<endl;
+        return -1;
+    }
+    
+    file_descriptor_map.erase(fd);
+    openfile_count--;
+    free_filedescriptor_vector.push_back(fd);
+    cout<<"File closed successfully :) "<<endl;
+    return 1;
 }
