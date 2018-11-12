@@ -1,11 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
-#include <bits/stdc++.h>
 #include "inode.h"
-using namespace std;
 
 /******************************************************************************/
 static int active = 0; /* is the virtual disk open (active) */
@@ -53,22 +46,24 @@ int create_disk(char *disk_name)
     for (int i = 0; i < NO_OF_INODES; ++i)
     {
         /* setting all pointers of inode as free */
-        for (int j = 0; j < 13; j++)
+        for (int j = 0; j < 12; j++)
         {
             inode_arr[i].pointer[j] = -1;
         }
     }
 
+    int len;
     /* storing superblock into starting of the file */
     fseek(diskptr, 0, SEEK_SET);
-    char sb_buff[sizeof(struct super_block)];
-    memset(sb_buff, 0, sizeof(struct super_block));
+    len = sizeof(struct super_block);
+    char sb_buff[len];
+    memset(sb_buff, 0, len);
     memcpy(sb_buff, &sb, sizeof(sb));
     fwrite(sb_buff, sizeof(char), sizeof(sb), diskptr);
 
     /* storing file_inode_mapping after super block */
     fseek(diskptr, (sb.no_of_blocks_used_by_superblock) * BLOCK_SIZE, SEEK_SET);
-    int len = sizeof(file_inode_mapping_arr);
+    len = sizeof(file_inode_mapping_arr);
     char dir_buff[len];
     memset(dir_buff, 0, len);
     memcpy(dir_buff, file_inode_mapping_arr, len);
@@ -76,7 +71,7 @@ int create_disk(char *disk_name)
 
     /* storing inodes after file_inode mapping */
     fseek(diskptr, (sb.starting_index_of_inodes) * BLOCK_SIZE, SEEK_SET);
-    int len = sizeof(inode_arr);
+    len = sizeof(inode_arr);
     char inode_buff[len];
     memset(inode_buff, 0, len);
     memcpy(inode_buff, inode_arr, len);
@@ -91,7 +86,7 @@ int create_disk(char *disk_name)
 int mount_disk(char *name)
 {
     diskptr = fopen(disk_name, "rb+");
-
+    int len;
     /* retrieve super block from virtual disk and store into global struct super_block sb */
     char sb_buff[sizeof(sb)];
     memset(sb_buff, 0, sizeof(sb));
@@ -101,7 +96,7 @@ int mount_disk(char *name)
     /* retrieve file_inode mapping array from virtual disk and store into global
   struct dir_entry file_inode_mapping_arr[NO_OF_INODES] */
     fseek(diskptr, (sb.no_of_blocks_used_by_superblock) * BLOCK_SIZE, SEEK_SET);
-    int len = sizeof(file_inode_mapping_arr);
+    len = sizeof(file_inode_mapping_arr);
     char dir_buff[len];
     memset(dir_buff, 0, len);
     fread(dir_buff, sizeof(char), len, diskptr);
@@ -110,7 +105,7 @@ int mount_disk(char *name)
     /* retrieve Inode block from virtual disk and store into global struct inode 
   inode_arr[NO_OF_INODES] */
     fseek(diskptr, (sb.starting_index_of_inodes) * BLOCK_SIZE, SEEK_SET);
-    int len = sizeof(inode_arr);
+    len = sizeof(inode_arr);
     char inode_buff[len];
     memset(inode_buff, 0, len);
     fread(inode_buff, sizeof(char), len, diskptr);
@@ -153,7 +148,7 @@ int unmount_disk()
         sb.datablock_freelist[i] = true;
     }
     /* updating free data block in super block */
-    for (int i = 0; i < free_data_block_vector.size(); i++)
+    for (unsigned int i = 0; i < free_data_block_vector.size(); i++)
     {
         sb.datablock_freelist[free_data_block_vector.back()] = false;
         free_data_block_vector.pop_back();
@@ -166,15 +161,15 @@ int unmount_disk()
     }
 
     /* Making those inode nos which are free to false */
-    for (int i = 0; i < free_inode_vector.size(); ++i)
+    for (unsigned int i = 0; i < free_inode_vector.size(); ++i)
     {
         sb.inode_freelist[free_inode_vector.back()] = false;
         free_inode_vector.pop_back();
     }
-
+    int len;
     /* storing super block structure in starting of virtual disk */
     fseek(diskptr, 0, SEEK_SET);
-    int len = sizeof(struct super_block);
+    len = sizeof(struct super_block);
     char sb_buff[len];
     memset(sb_buff, 0, len);
     memcpy(sb_buff, &sb, sizeof(sb));
@@ -182,7 +177,7 @@ int unmount_disk()
 
     /* storing file_inode mapping after super block into virtual disk */
     fseek(diskptr, (sb.starting_index_of_data_blocks) * BLOCK_SIZE, SEEK_SET);
-    int len = sizeof(file_inode_mapping_arr);
+    len = sizeof(file_inode_mapping_arr);
     char dir_buff[len];
     memset(dir_buff, 0, len);
     memcpy(dir_buff, file_inode_mapping_arr, len);
@@ -190,7 +185,7 @@ int unmount_disk()
 
     /* storing inodes after file_inode mapping into virtual disk */
     fseek(diskptr, (sb.starting_index_of_inodes) * BLOCK_SIZE, SEEK_SET);
-    int len = sizeof(inode_arr);
+    len = sizeof(inode_arr);
     char inode_buff[len];
     memset(inode_buff, 0, len);
     memcpy(inode_buff, inode_arr, len);
@@ -198,47 +193,109 @@ int unmount_disk()
 
     //close all open fd
 
-    cout<<"Disk Unmounted!!!"<<endl;
+    cout << "Disk Unmounted!!!" << endl;
     fclose(diskptr);
-    
+
     active = 0;
     return 1;
 }
 
 int block_read(int block, char *buf)
 {
-  if (!active) {
-    fprintf(stderr, "block_read: disk not active\n");
-    return -1;
-  }
+    if (!active)
+    {
+        fprintf(stderr, "block_read: disk not active\n");
+        return -1;
+    }
 
-  if ((block < 0) || (block >= DISK_BLOCKS))
-  {
-    fprintf(stderr, "block_read: block index out of bounds\n");
-    return -1;
-  }
-    
-  if (fseek(diskptr, block * BLOCK_SIZE, SEEK_SET) < 0)
-  {
-    perror("block_read: failed to lseek");
-    return -1;
-  }
+    if ((block < 0) || (block >= DISK_BLOCKS))
+    {
+        fprintf(stderr, "block_read: block index out of bounds\n");
+        return -1;
+    }
 
-  if (fread(buf, sizeof(char), BLOCK_SIZE,diskptr) < 0)
-  {
-    perror("block_read: failed to read");
-    return -1;
-  }
+    if (fseek(diskptr, block * BLOCK_SIZE, SEEK_SET) < 0)
+    {
+        perror("block_read: failed to lseek");
+        return -1;
+    }
 
-  return 0;
+    if (fread(buf, sizeof(char), BLOCK_SIZE, diskptr) < 0)
+    {
+        perror("block_read: failed to read");
+        return -1;
+    }
+
+    return 0;
+}
+int user_handle()
+{
+    int choice;
+    while (1)
+    {
+        cout << "1 to create file" << endl;
+        cout << "2 to open file" << endl;
+        cout << "3 to read file" << endl;
+        cout << "4 to write file" << endl;
+        cout << "5 to close file" << endl;
+        cout << "6 to delete file" << endl;
+        cout << "7 to unmount" << endl;
+        cin >> choice;
+        switch (choice)
+        {
+        case 1:
+            cout<<"Enter filename to create"<<endl;
+            cin>>filename;
+            create_file(filename);
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            break;
+        case 6:
+            cout<<"Enter filename to delete"<<endl;
+            cin>>filename;
+            delete_file(filename);
+            break;
+        case 7:
+            unmount_disk();
+            return 0;
+            break;
+        }
+    }
 }
 int main()
 {
-    while(1)
+    int choice;
+    while (1)
     {
-        cout<<"";
-
-        break;
+        cout << "1 to create disk" << endl;
+        cout << "2 to mount disk" << endl;
+        cout << "9 to exit" << endl;
+        cin >> choice;
+        if (choice == 9)
+            break;
+        cout << "Enter diskname : " << endl;
+        cin >> disk_name;
+        switch (choice)
+        {
+        case 1:
+            create_disk(disk_name);
+            break;
+        case 2:
+            mount_disk(disk_name);
+            user_handle();
+            break;
+        case 9:
+            break;
+        default:
+            cout << "Please make valid choice" << endl;
+            break;
+        }
     }
     return 0;
 }

@@ -1,5 +1,3 @@
-#include <bits/stdc++.h>
-using namespace std;
 #include "inode.h"
 
 int create_file(char *name)
