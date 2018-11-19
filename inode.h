@@ -16,7 +16,7 @@ using namespace std;
 
 #define DISK_BLOCKS 131072        /* number of blocks on the disk                */
 #define BLOCK_SIZE 4096           /* block size on "disk"                        */
-#define NO_OF_INODES 78644       /* In 60% possible number of inodes. */
+#define NO_OF_INODES 78644        /* In 60% possible number of inodes. */
 #define NO_OF_FILE_DESCRIPTORS 32 /* this is predefined */
 
 // #define DISK_BLOCKS 100        /* number of blocks on the disk                */
@@ -74,22 +74,23 @@ extern map<string, int> dir_map;                     //file name as key maps to 
 extern vector<int> free_inode_vector;                // denote free inodes
 extern vector<int> free_data_block_vector;           // denote free data blocks
 extern vector<int> free_filedescriptor_vector;       // denote free filedescriptor.
-extern int openfile_count;                       //keeps track of number of files opened.
+extern int openfile_count;                           //keeps track of number of files opened.
 extern map<int, pair<int, int>> file_descriptor_map; //Stores files Descriptor as key and corresponding Inode number(First) and file pointer.
+extern map<int, int> file_descriptor_mode_map;       // 0:read, 1:write, 2: append
 extern FILE *diskptr;
 /******************************************************************************/
 
 /******************************************************************************/
 // Methods to be implemented.
 
-int create_disk(char *name); /* create an empty, virtual disk file          */
-int mount_disk(char *name);  /* open a virtual disk (file)                  */
-int unmount_disk();          /* close a previously opened disk (file)       */
-int open_file(char *name);   /* open file to get its file descriptor        */
-int close_file(int fd);      /* close the file                              */
-int block_read(int block, char *buf); /* read block */
-int create_file(char *name); /* to create file */
-int delete_file(char *name); /* to delete file */
+int create_disk(char *name);              /* create an empty, virtual disk file          */
+int mount_disk(char *name);               /* open a virtual disk (file)                  */
+int unmount_disk();                       /* close a previously opened disk (file)       */
+int open_file(char *name, int file_mode); /* open file to get its file descriptor        */
+int close_file(int fd);                   /* close the file                              */
+int block_read(int block, char *buf);     /* read block */
+int create_file(char *name);              /* to create file */
+int delete_file(char *name);              /* to delete file */
 /******************************************************************************/
 
 #endif

@@ -175,7 +175,7 @@ int delete_file(char *name)
     return 0;
 }
 
-int open_file(char *name)
+int open_file(char *name, int file_mode)
 {
     string filename = string(name);
     if (dir_map.find(filename) == dir_map.end())
@@ -195,7 +195,8 @@ int open_file(char *name)
     free_filedescriptor_vector.pop_back();
 
     file_descriptor_map[fd].first = cur_inode;
-    file_descriptor_map[fd].second = 0;             //to be cleared (explained)
+    file_descriptor_map[fd].second = 0;
+    file_descriptor_mode_map[fd] = file_mode;
     openfile_count++;
 
     cout << "File " << filename << " opened with file descriptor  : " << fd << endl;
@@ -212,6 +213,7 @@ int close_file(int fd)
     }
 
     file_descriptor_map.erase(fd);
+    file_descriptor_mode_map.erase(fd);
     openfile_count--;
     free_filedescriptor_vector.push_back(fd);
     cout << "File closed successfully :) " << endl;

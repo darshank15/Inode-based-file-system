@@ -14,7 +14,7 @@ vector<int> free_data_block_vector;           // denote free data blocks
 vector<int> free_filedescriptor_vector;       // denote free filedescriptor.
 int openfile_count = 0;                       //keeps track of number of files opened.
 map<int, pair<int, int>> file_descriptor_map; //Stores files Descriptor as key and corresponding Inode number(First) and file pointer.
-
+map<int, int> file_descriptor_mode_map;       //Stores mode in which file descriptor is used
 FILE *diskptr;
 /******************************************************************************/
 
@@ -85,24 +85,24 @@ int create_disk(char *disk_name)
 
 void printall()
 {
-    cout<<"File-inode-Mapping"<<endl;
-    for(auto it : file_inode_mapping_arr)
+    cout << "File-inode-Mapping" << endl;
+    for (auto it : file_inode_mapping_arr)
     {
-        cout<<it.file_name<<endl;
-        cout<<it.inode_num<<endl;
-        cout<<"---------"<<endl;
+        cout << it.file_name << endl;
+        cout << it.inode_num << endl;
+        cout << "---------" << endl;
     }
-    cout<<"Freeinode vector"<<endl;
-    for(auto it : free_inode_vector)
+    cout << "Freeinode vector" << endl;
+    for (auto it : free_inode_vector)
     {
-        cout<<it<<endl;
-        cout<<"---------"<<endl;
+        cout << it << endl;
+        cout << "---------" << endl;
     }
-    cout<<"File-data-vector"<<endl;
-    for(auto it : free_data_block_vector)
+    cout << "File-data-vector" << endl;
+    for (auto it : free_data_block_vector)
     {
-        cout<<it<<endl;
-        cout<<"---------"<<endl;
+        cout << it << endl;
+        cout << "---------" << endl;
     }
 }
 
@@ -256,9 +256,40 @@ int block_read(int block, char *buf)
 
     return 0;
 }
+
+int block_write(int block, char *buf)
+{
+    if (!active)
+    {
+        fprintf(stderr, "block_write: disk not active\n");
+        return -1;
+    }
+
+    if ((block < 0) || (block >= DISK_BLOCKS))
+    {
+        fprintf(stderr, "block_write: block index out of bounds\n");
+        return -1;
+    }
+
+    if (fseek(diskptr, block * BLOCK_SIZE, SEEK_SET) < 0)
+    {
+        perror("block_write: failed to lseek");
+        return -1;
+    }
+
+    if (fwrite(buf, sizeof(char), BLOCK_SIZE, diskptr) < 0)
+    {
+        perror("block_write: failed to write");
+        return -1;
+    }
+
+    return 0;
+}
+
 int user_handle()
 {
     int choice;
+    int file_mode = -1;
     while (1)
     {
         cout << "1 to create file" << endl;
@@ -279,7 +310,16 @@ int user_handle()
         case 2:
             cout << "Enter filename to open" << endl;
             cin >> filename;
-            open_file(filename);
+            do
+            {
+                cout << "0: read mode\n1: write mode\n2: append mode\n";
+                cin >> file_mode;
+                if (file_mode < 0 || file_mode > 2)
+                {
+                    cout << "Please make valid choice" << endl;
+                }
+            } while (file_mode < 0 || file_mode > 2);
+            open_file(filename, file_mode);
             break;
         case 3:
             break;
