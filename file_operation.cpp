@@ -106,10 +106,10 @@ int delete_file(char *name)
                 free_data_block_vector.push_back(indirect_ptr_array[i]);
             }
         }
-    }
 
-    inode_arr[cur_inode].pointer[10] = -1;
-    free_data_block_vector.push_back(indirectptr);
+        inode_arr[cur_inode].pointer[10] = -1;
+        free_data_block_vector.push_back(indirectptr);
+    }
 
     int doubleindirectptr;
     if (!delete_completed)
@@ -135,7 +135,7 @@ int delete_file(char *name)
                 int indirect_ptr_array[1024];
                 block_read(singleindirectptr, blockbuffer1);
                 memcpy(indirect_ptr_array, blockbuffer1, sizeof(indirect_ptr_array));
-                
+
                 for (int i = 0; i < 1024; i++)
                 {
                     if (indirect_ptr_array[i] == -1)
@@ -150,74 +150,70 @@ int delete_file(char *name)
                 }
 
                 free_data_block_vector.push_back(singleindirectptr);
-
             }
         }
 
         free_data_block_vector.push_back(doubleindirectptr);
-
     }
 
     //Resetting inode structure with default values.
     for (int i = 0; i <= 11; ++i)
-	{
-		inode_arr[cur_inode].pointer[i] = -1;
-	}
-	inode_arr[cur_inode].filesize = 0;
+    {
+        inode_arr[cur_inode].pointer[i] = -1;
+    }
+    inode_arr[cur_inode].filesize = 0;
 
     free_inode_vector.push_back(cur_inode);
-    char emptyname[30]="";
-    strcpy(file_inode_mapping_arr[cur_inode].file_name,emptyname);
-    file_inode_mapping_arr[cur_inode].inode_num=-1;
+    char emptyname[30] = "";
+    strcpy(file_inode_mapping_arr[cur_inode].file_name, emptyname);
+    file_inode_mapping_arr[cur_inode].inode_num = -1;
 
     dir_map.erase(filename);
 
-    cout<<"File Deleted successfully :) "<<endl;
+    cout << "File Deleted successfully :) " << endl;
 
-    return 1;
-
+    return 0;
 }
 
 int open_file(char *name)
 {
-    string filename=string(name);
-    if(dir_map.find(filename)==dir_map.end())
+    string filename = string(name);
+    if (dir_map.find(filename) == dir_map.end())
     {
-        cout<<"Open File Error : File not found !!!"<<endl;
+        cout << "Open File Error : File not found !!!" << endl;
         return -1;
     }
 
-    if(free_filedescriptor_vector.size()==0)
+    if (free_filedescriptor_vector.size() == 0)
     {
-        cout<<"Open File Error : File descriptor not available !!!"<<endl;
+        cout << "Open File Error : File descriptor not available !!!" << endl;
         return -1;
     }
-    
+
     int cur_inode = dir_map[filename];
     int fd = free_filedescriptor_vector.back();
     free_filedescriptor_vector.pop_back();
 
     file_descriptor_map[fd].first = cur_inode;
-    file_descriptor_map[fd].second = 0;
+    file_descriptor_map[fd].second = 0;             //to be cleared (explained)
     openfile_count++;
 
-    cout<<"File "<<filename<<" opened with file descriptor  : "<<fd<<endl;
+    cout << "File " << filename << " opened with file descriptor  : " << fd << endl;
 
     return fd;
-
 }
 
 int close_file(int fd)
 {
-    if(file_descriptor_map.find(fd)==file_descriptor_map.end())
+    if (file_descriptor_map.find(fd) == file_descriptor_map.end())
     {
-        cout<<"close File Error : file is not opened yet !!!"<<endl;
+        cout << "close File Error : file is not opened yet !!!" << endl;
         return -1;
     }
-    
+
     file_descriptor_map.erase(fd);
     openfile_count--;
     free_filedescriptor_vector.push_back(fd);
-    cout<<"File closed successfully :) "<<endl;
+    cout << "File closed successfully :) " << endl;
     return 1;
 }
