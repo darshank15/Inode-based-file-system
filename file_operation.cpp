@@ -219,3 +219,17 @@ int close_file(int fd)
     cout << "File closed successfully :) " << endl;
     return 1;
 }
+
+int read_file(int fd, char *buf){
+    if(file_descriptor_map.find(fd) == file_descriptor_map.end()){
+        cout << "Read File Error : file is not opened yet !!!" << endl;
+        return -1;
+    }
+
+    if(file_descriptor_mode_map[fd]!=0){
+        cout << "Read File Error : file with descriptor "<< fd <<" is not opened in read mode !!!" << endl;
+        return -1;
+    }
+
+    
+}
