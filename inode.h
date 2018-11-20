@@ -91,6 +91,7 @@ int close_file(int fd);                   /* close the file                     
 int block_read(int block, char *buf);     /* read block */
 int create_file(char *name);              /* to create file */
 int delete_file(char *name);              /* to delete file */
+int write_into_file(int fd);              /* to write content into file */
 /******************************************************************************/
 
 #endif

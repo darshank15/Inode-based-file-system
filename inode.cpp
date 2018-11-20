@@ -299,6 +299,8 @@ int user_handle()
         cout << "5 to close file" << endl;
         cout << "6 to delete file" << endl;
         cout << "7 to unmount" << endl;
+        cin.clear();
+        // cout.flush();
         cin >> choice;
         switch (choice)
         {
@@ -324,6 +326,12 @@ int user_handle()
         case 3:
             break;
         case 4:
+            cout << "Enter filedescriptor to write : " << endl;
+            int fd1;
+            cin >> fd1;
+            write_into_file(fd1);
+            fflush(stdin);
+            cout.flush();
             break;
         case 5:
             cout << "Enter filedescriptor to close" << endl;
