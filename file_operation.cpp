@@ -241,7 +241,7 @@ int read_file(int fd, char *buf, int kbytes)
 
     int cur_inode = file_descriptor_map[fd].first;
     struct inode in = inode_arr[cur_inode];
-    int filesize = in.filesize;
+    // int filesize = in.filesize;
     buf = new char[kbytes];
     char *initial_buf_pos=buf;
 
@@ -380,4 +380,5 @@ int read_file(int fd, char *buf, int kbytes)
     file_descriptor_map[fd].second = file_descriptor_map[fd].second + kbytes;
 
     fclose(fp1);
+    return 0;
 }
