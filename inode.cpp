@@ -290,6 +290,7 @@ int user_handle()
 {
     int choice;
     int file_mode = -1;
+    int fd = -1;
     while (1)
     {
         cout << "1 to create file" << endl;
@@ -324,18 +325,25 @@ int user_handle()
             open_file(filename, file_mode);
             break;
         case 3:
+            cout << "Enter filedescriptor to read : " << endl;
+            cin >> fd;
+            char *buf;
+            int k;
+            cout << "Enter size to read in kb" << endl;
+            cin >> k;
+            read_file(fd, buf, k);
+            fflush(stdin);
+            cout.flush();
             break;
         case 4:
             cout << "Enter filedescriptor to write : " << endl;
-            int fd1;
-            cin >> fd1;
-            write_into_file(fd1);
+            cin >> fd;
+            write_into_file(fd);
             fflush(stdin);
             cout.flush();
             break;
         case 5:
             cout << "Enter filedescriptor to close" << endl;
-            int fd;
             cin >> fd;
             close_file(fd);
             break;

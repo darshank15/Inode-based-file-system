@@ -44,6 +44,7 @@ int _block_write(int block, char *buf, int size, int start_position)
 void _write_into_file(int fd, char *buff, int len)
 {
     //TEMP : ERROR Handling : File disk full then give error.
+    // NUM OF BYTES SUCCESSFULLY WRITTEN shoud be return. 
     int cur_pos = file_descriptor_map[fd].second;
 
     int filled_data_block = cur_pos / BLOCK_SIZE;
