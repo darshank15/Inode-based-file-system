@@ -293,6 +293,7 @@ int user_handle()
     int fd = -1;
     while (1)
     {
+        cout << endl << endl;
         cout << "1 to create file" << endl;
         cout << "2 to open file" << endl;
         cout << "3 to read file" << endl;
@@ -332,14 +333,14 @@ int user_handle()
             cout << "Enter size to read in kb" << endl;
             cin >> k;
             read_file(fd, buf, k);
-            fflush(stdin);
+            cin.clear();
             cout.flush();
             break;
         case 4:
             cout << "Enter filedescriptor to write : " << endl;
             cin >> fd;
             write_into_file(fd);
-            fflush(stdin);
+            cin.clear();
             cout.flush();
             break;
         case 5:

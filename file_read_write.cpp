@@ -44,7 +44,8 @@ int _block_write(int block, char *buf, int size, int start_position)
 void _write_into_file(int fd, char *buff, int len)
 {
     //TEMP : ERROR Handling : File disk full then give error.
-    // NUM OF BYTES SUCCESSFULLY WRITTEN shoud be return. 
+    // NUM OF BYTES SUCCESSFULLY WRITTEN shoud be return.
+    // ALREADY WRITTEN file should be deleted. 
     int cur_pos = file_descriptor_map[fd].second;
 
     int filled_data_block = cur_pos / BLOCK_SIZE;
@@ -289,7 +290,7 @@ int write_into_file(int fd)
         len = x.size();
         char buff[len + 1];
         memset(buff, 0, len);
-        memcpy(buff, &x, len);
+        memcpy(buff, x.c_str(), len);
         buff[len] = '\0';
         _write_into_file(fd, buff, len);
     }
@@ -299,7 +300,7 @@ int write_into_file(int fd)
         len = remaining_size_in_last_written_data_block;
         char buff[len + 1];
         memset(buff, 0, len);
-        memcpy(buff, &x, len);
+        memcpy(buff, x.c_str(), len);
         buff[len] = '\0';
         _write_into_file(fd, buff, len);
         x = x.substr(len);
@@ -311,7 +312,7 @@ int write_into_file(int fd)
             len = BLOCK_SIZE;
             char buff[len + 1];
             memset(buff, 0, len);
-            memcpy(buff, &x, len);
+            memcpy(buff, x.c_str(), len);
             buff[len] = '\0';
             x = x.substr(len);
             _write_into_file(fd, buff, len);
@@ -322,7 +323,7 @@ int write_into_file(int fd)
         len = remaining_size;
         char buff1[len + 1];
         memset(buff1, 0, len);
-        memcpy(buff1, &x, len);
+        memcpy(buff1, x.c_str(), len);
         buff1[len] = '\0';
         _write_into_file(fd, buff1, len);
     }

@@ -14,15 +14,15 @@ using namespace std;
 // total disk size = 512MB
 // total no of blocks = 512M/4096 = 131072
 
-#define DISK_BLOCKS 131072        /* number of blocks on the disk                */
-#define BLOCK_SIZE 4096           /* block size on "disk"                        */
-#define NO_OF_INODES 78644        /* In 60% possible number of inodes. */
-#define NO_OF_FILE_DESCRIPTORS 32 /* this is predefined */
-
-// #define DISK_BLOCKS 100        /* number of blocks on the disk                */
-// #define BLOCK_SIZE 512           /* block size on "disk"                        */
-// #define NO_OF_INODES 25       /* In 60% possible number of inodes. */
+// #define DISK_BLOCKS 131072        /* number of blocks on the disk                */
+// #define BLOCK_SIZE 4096           /* block size on "disk"                        */
+// #define NO_OF_INODES 78644        /* In 60% possible number of inodes. */
 // #define NO_OF_FILE_DESCRIPTORS 32 /* this is predefined */
+
+#define DISK_BLOCKS 100           /* number of blocks on the disk                */
+#define BLOCK_SIZE 512            /* block size on "disk"                        */
+#define NO_OF_INODES 25           /* In 60% possible number of inodes. */
+#define NO_OF_FILE_DESCRIPTORS 32 /* this is predefined */
 /******************************************************************************/
 struct inode // total size = 256Byte (Estimated in worst case)
 {
