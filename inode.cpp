@@ -9,12 +9,13 @@ struct file_to_inode_mapping file_inode_mapping_arr[NO_OF_INODES];
 struct inode inode_arr[NO_OF_INODES];
 
 map<string, int> dir_map;                     //file name as key maps to inode (value)
-vector<int> free_inode_vector;                // denote free inodes
-vector<int> free_data_block_vector;           // denote free data blocks
-vector<int> free_filedescriptor_vector;       // denote free filedescriptor.
+vector<int> free_inode_vector;                //denote free inodes
+vector<int> free_data_block_vector;           //denote free data blocks
+vector<int> free_filedescriptor_vector;       //denote free filedescriptor.
 int openfile_count = 0;                       //keeps track of number of files opened.
 map<int, pair<int, int>> file_descriptor_map; //Stores files Descriptor as key and corresponding Inode number(First) and file pointer.
 map<int, int> file_descriptor_mode_map;       //Stores mode in which file descriptor is used
+map<int, string> inode_to_file_map;           // indoe-> filename inode to file mapping
 FILE *diskptr;
 /******************************************************************************/
 
@@ -88,22 +89,24 @@ void printall()
     cout << "File-inode-Mapping" << endl;
     for (auto it : file_inode_mapping_arr)
     {
-        cout << it.file_name << endl;
-        cout << it.inode_num << endl;
-        cout << "---------" << endl;
+        cout << it.file_name << " : " << it.inode_num << endl;
     }
     cout << "Freeinode vector" << endl;
-    for (auto it : free_inode_vector)
+    int i = 0;
+    for (int it = 0; it < NO_OF_INODES; it++)
     {
-        cout << it << endl;
-        cout << "---------" << endl;
+        if (sb.inode_freelist[it] == false)
+            i++;
     }
+    cout << i << endl;
+    i = 0;
     cout << "File-data-vector" << endl;
-    for (auto it : free_data_block_vector)
+    for (int it = 0; it < DISK_BLOCKS; it++)
     {
-        cout << it << endl;
-        cout << "---------" << endl;
+        if (sb.datablock_freelist[it] == false)
+            i++;
     }
+    cout << i << endl;
 }
 
 int mount_disk(char *name)
@@ -141,14 +144,17 @@ int mount_disk(char *name)
 
     /* storing all filenames into map */
     for (int i = NO_OF_INODES - 1; i >= 0; --i)
-        if (sb.inode_freelist[i] == 1)
+        if (sb.inode_freelist[i] == true)
+        {
             dir_map[string(file_inode_mapping_arr[i].file_name)] = file_inode_mapping_arr[i].inode_num;
+            inode_to_file_map[file_inode_mapping_arr[i].inode_num] = string(file_inode_mapping_arr[i].file_name);
+        }
         else
             free_inode_vector.push_back(i);
 
     /* maintain free data block vector */
     for (int i = DISK_BLOCKS - 1; i >= sb.starting_index_of_data_blocks; --i)
-        if (sb.datablock_freelist[i] == 0)
+        if (sb.datablock_freelist[i] == false)
             free_data_block_vector.push_back(i);
 
     /* maintain free filedescriptor vector */
@@ -178,10 +184,9 @@ int unmount_disk()
     /* updating free data block in super block */
     for (unsigned int i = 0; i < free_data_block_vector.size(); i++)
     {
-        sb.datablock_freelist[free_data_block_vector.back()] = false;
-        free_data_block_vector.pop_back();
+        sb.datablock_freelist[free_data_block_vector[i]] = false;
     }
-
+    free_data_block_vector.clear();
     /* Initializing inode free list to true */
     for (int i = 0; i < NO_OF_INODES; ++i)
     {
@@ -191,9 +196,9 @@ int unmount_disk()
     /* Making those inode nos which are free to false */
     for (unsigned int i = 0; i < free_inode_vector.size(); ++i)
     {
-        sb.inode_freelist[free_inode_vector.back()] = false;
-        free_inode_vector.pop_back();
+        sb.inode_freelist[free_inode_vector[i]] = false;
     }
+    free_inode_vector.clear();
     int len;
     /* storing super block structure in starting of virtual disk */
     fseek(diskptr, 0, SEEK_SET);
@@ -225,7 +230,7 @@ int unmount_disk()
     fclose(diskptr);
 
     active = 0;
-    return 1;
+    return 0;
 }
 
 int block_read(int block, char *buf)
@@ -286,24 +291,51 @@ int block_write(int block, char *buf)
     return 0;
 }
 
+void print_list_open_files()
+{
+    for (auto i : file_descriptor_map)
+    {
+        int fd = i.first;
+        int inode = i.second.first;
+        cout << inode_to_file_map[inode] << " is opened with descriptor [ " << fd << " ] in ";
+        if (file_descriptor_mode_map[fd] == 0)
+            cout << "READ mode" << endl;
+        else if (file_descriptor_mode_map[fd] == 1)
+            cout << "WRITE mode" << endl;
+        else if (file_descriptor_mode_map[fd] == 2)
+            cout << "APPEND mode" << endl;
+    }
+    return;
+}
+
+void print_list_files()
+{
+    for (auto i : dir_map)
+    {
+        cout << i.first << " with inode : " << i.second << endl;
+    }
+    return;
+}
+
 int user_handle()
 {
     int choice;
     int fd = -1;
     while (1)
     {
-        cout << endl
-             << endl;
-        cout << "1 to create file" << endl;
-        cout << "2 to open file" << endl;
-        cout << "3 to read file" << endl;
-        cout << "4 to write file" << endl;
-        cout << "5 to append file" << endl;
-        cout << "6 to close file" << endl;
-        cout << "7 to delete file" << endl;
-        cout << "8 to unmount" << endl;
+        cout << "=========================" << endl;
+        cout << "1 create file" << endl;
+        cout << "2 open file" << endl;
+        cout << "3 read file" << endl;
+        cout << "4 write file" << endl;
+        cout << "5 append file" << endl;
+        cout << "6 close file" << endl;
+        cout << "7 delete file" << endl;
+        cout << "8 list of files" << endl;
+        cout << "9 list of opened files" << endl;
+        cout << "10 to unmount" << endl;
+        cout << "=========================" << endl;
         cin.clear();
-        // cout.flush();
         cin >> choice;
         switch (choice)
         {
@@ -356,6 +388,12 @@ int user_handle()
             delete_file(filename);
             break;
         case 8:
+            print_list_files();
+            break;
+        case 9:
+            print_list_open_files();
+            break;
+        case 10:
             unmount_disk();
             return 0;
             break;
