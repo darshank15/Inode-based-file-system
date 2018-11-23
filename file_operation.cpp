@@ -181,7 +181,7 @@ int delete_file(char *name)
     return 0;
 }
 
-int open_file(char *name, int file_mode)
+int open_file(char *name)
 {
     string filename = string(name);
     if (dir_map.find(filename) == dir_map.end())
@@ -195,8 +195,35 @@ int open_file(char *name, int file_mode)
         cout << "Open File Error : File descriptor not available !!!" << endl;
         return -1;
     }
+    /* asking for mode of file  */
+    int file_mode = -1;
+    do
+    {
+        cout << "0: read mode\n1: write mode\n2: append mode\n";
+        cin >> file_mode;
+        if (file_mode < 0 || file_mode > 2)
+        {
+            cout << "Please make valid choice" << endl;
+        }
+    } while (file_mode < 0 || file_mode > 2);
 
     int cur_inode = dir_map[filename];
+
+    /* checking if file is already open in write or append mode. */
+    if (file_mode == 1 || file_mode == 2)
+    {
+        for (int i = 0; i < NO_OF_FILE_DESCRIPTORS; i++)
+        {
+            if (file_descriptor_map.find(i) != file_descriptor_map.end() &&
+                file_descriptor_map[i].first == cur_inode &&
+                (file_descriptor_mode_map[i] == 1 || file_descriptor_mode_map[i] == 2))
+            {
+                cout << "File is already in use with file descriptor : " << i << endl;
+                return -1;
+            }
+        }
+    }
+
     int fd = free_filedescriptor_vector.back();
     free_filedescriptor_vector.pop_back();
 

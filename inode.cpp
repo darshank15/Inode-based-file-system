@@ -289,18 +289,19 @@ int block_write(int block, char *buf)
 int user_handle()
 {
     int choice;
-    int file_mode = -1;
     int fd = -1;
     while (1)
     {
-        cout << endl << endl;
+        cout << endl
+             << endl;
         cout << "1 to create file" << endl;
         cout << "2 to open file" << endl;
         cout << "3 to read file" << endl;
         cout << "4 to write file" << endl;
-        cout << "5 to close file" << endl;
-        cout << "6 to delete file" << endl;
-        cout << "7 to unmount" << endl;
+        cout << "5 to append file" << endl;
+        cout << "6 to close file" << endl;
+        cout << "7 to delete file" << endl;
+        cout << "8 to unmount" << endl;
         cin.clear();
         // cout.flush();
         cin >> choice;
@@ -314,16 +315,7 @@ int user_handle()
         case 2:
             cout << "Enter filename to open" << endl;
             cin >> filename;
-            do
-            {
-                cout << "0: read mode\n1: write mode\n2: append mode\n";
-                cin >> file_mode;
-                if (file_mode < 0 || file_mode > 2)
-                {
-                    cout << "Please make valid choice" << endl;
-                }
-            } while (file_mode < 0 || file_mode > 2);
-            open_file(filename, file_mode);
+            open_file(filename);
             break;
         case 3:
             cout << "Enter filedescriptor to read : " << endl;
@@ -339,21 +331,28 @@ int user_handle()
         case 4:
             cout << "Enter filedescriptor to write : " << endl;
             cin >> fd;
-            write_into_file(fd);
+            write_into_file(fd, 1);
             cin.clear();
             cout.flush();
             break;
         case 5:
+            cout << "Enter filedescriptor to append : " << endl;
+            cin >> fd;
+            write_into_file(fd, 2);
+            cin.clear();
+            cout.flush();
+            break;
+        case 6:
             cout << "Enter filedescriptor to close" << endl;
             cin >> fd;
             close_file(fd);
             break;
-        case 6:
+        case 7:
             cout << "Enter filename to delete" << endl;
             cin >> filename;
             delete_file(filename);
             break;
-        case 7:
+        case 8:
             unmount_disk();
             return 0;
             break;
