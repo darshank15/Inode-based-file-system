@@ -1,71 +1,7 @@
 #include "inode.h"
 
-int create_file(char *name)
+int erase_inode_content(int cur_inode)
 {
-    string filename = string(name);
-    //check if file already exist in disk
-    if (dir_map.find(filename) != dir_map.end())
-    {
-        cout << "Create File Error : File already present !!!" << endl;
-        return -1;
-    }
-
-    //check if inode are available
-    if (free_inode_vector.size() == 0)
-    {
-        cout << "Create File Error : No more Inodes available" << endl;
-        return -1;
-    }
-
-    //check if datablock are available
-    if (free_data_block_vector.size() == 0)
-    {
-        cout << "Create File Error : No more DataBlock available" << endl;
-        return -1;
-    }
-
-    //get next free inode and datablock number
-    int next_avl_inode = free_inode_vector.back();
-    free_inode_vector.pop_back();
-    int next_avl_datablock = free_data_block_vector.back();
-    free_data_block_vector.pop_back();
-
-    //assigned one data block to this inode
-    inode_arr[next_avl_inode].pointer[0] = next_avl_datablock;
-    inode_arr[next_avl_inode].filesize = 0;
-
-    dir_map[filename] = next_avl_inode;
-
-    file_inode_mapping_arr[next_avl_inode].inode_num = next_avl_inode;
-    strcpy(file_inode_mapping_arr[next_avl_inode].file_name, name);
-
-    cout << "File Successfully Created :) " << endl;
-    return 1;
-}
-
-int delete_file(char *name)
-{
-    string filename = string(name);
-
-    //check if file exist or not
-    if (dir_map.find(filename) == dir_map.end())
-    {
-        cout << "Delete File Error : File doesn't exist !!!" << endl;
-        return -1;
-    }
-
-    //getting inode of file
-    int cur_inode = dir_map[filename];
-
-    for (int i = 0; i < NO_OF_FILE_DESCRIPTORS; i++)
-    {
-        if (file_descriptor_map.find(i) != file_descriptor_map.end() && file_descriptor_map[i].first == cur_inode)
-        {
-            cout << "Delete File Error : File is opened, Can not delete an opened file !!!" << endl;
-            return -1;
-        }
-    }
-
     //flag to verify if deletion completed or not
     bool delete_completed = false;
 
@@ -162,7 +98,77 @@ int delete_file(char *name)
         inode_arr[cur_inode].pointer[i] = -1;
     }
     inode_arr[cur_inode].filesize = 0;
+    return 0;
+}
 
+int create_file(char *name)
+{
+    string filename = string(name);
+    //check if file already exist in disk
+    if (dir_map.find(filename) != dir_map.end())
+    {
+        cout << "Create File Error : File already present !!!" << endl;
+        return -1;
+    }
+
+    //check if inode are available
+    if (free_inode_vector.size() == 0)
+    {
+        cout << "Create File Error : No more Inodes available" << endl;
+        return -1;
+    }
+
+    //check if datablock are available
+    if (free_data_block_vector.size() == 0)
+    {
+        cout << "Create File Error : No more DataBlock available" << endl;
+        return -1;
+    }
+
+    //get next free inode and datablock number
+    int next_avl_inode = free_inode_vector.back();
+    free_inode_vector.pop_back();
+    int next_avl_datablock = free_data_block_vector.back();
+    free_data_block_vector.pop_back();
+
+    //assigned one data block to this inode
+    inode_arr[next_avl_inode].pointer[0] = next_avl_datablock;
+    inode_arr[next_avl_inode].filesize = 0;
+
+    dir_map[filename] = next_avl_inode;
+
+    file_inode_mapping_arr[next_avl_inode].inode_num = next_avl_inode;
+    strcpy(file_inode_mapping_arr[next_avl_inode].file_name, name);
+
+    cout << "File Successfully Created :) " << endl;
+    return 1;
+}
+
+int delete_file(char *name)
+{
+    string filename = string(name);
+
+    //check if file exist or not
+    if (dir_map.find(filename) == dir_map.end())
+    {
+        cout << "Delete File Error : File doesn't exist !!!" << endl;
+        return -1;
+    }
+
+    //getting inode of file
+    int cur_inode = dir_map[filename];
+
+    for (int i = 0; i < NO_OF_FILE_DESCRIPTORS; i++)
+    {
+        if (file_descriptor_map.find(i) != file_descriptor_map.end() && file_descriptor_map[i].first == cur_inode)
+        {
+            cout << "Delete File Error : File is opened, Can not delete an opened file !!!" << endl;
+            return -1;
+        }
+    }
+
+    erase_inode_content(cur_inode);
+    
     free_inode_vector.push_back(cur_inode);
     char emptyname[30] = "";
     strcpy(file_inode_mapping_arr[cur_inode].file_name, emptyname);
