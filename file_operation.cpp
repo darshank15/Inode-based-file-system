@@ -168,7 +168,7 @@ int delete_file(char *name)
     }
 
     erase_inode_content(cur_inode);
-    
+
     free_inode_vector.push_back(cur_inode);
     char emptyname[30] = "";
     strcpy(file_inode_mapping_arr[cur_inode].file_name, emptyname);
@@ -259,7 +259,7 @@ int read_file(int fd, char *buf, int kbytes)
 
     char dest_filename[20];
     strcpy(dest_filename, file_inode_mapping_arr[cur_inode].file_name);
-    FILE *fp1 = fopen(dest_filename, "wb+");
+    // FILE *fp1 = fopen(dest_filename, "wb+");
 
     for (int i = 0; i < 10; i++)
     {

@@ -93,6 +93,7 @@ int create_file(char *name);                  /* to create file */
 int delete_file(char *name);                  /* to delete file */
 int write_into_file(int fd);                  /* to write content into file */
 int read_file(int fd, char *buf, int kbytes); /* to read content from file */
+int erase_inode_content(int cur_inode);       /* to erase inode content */
 /******************************************************************************/
 
 #endif
