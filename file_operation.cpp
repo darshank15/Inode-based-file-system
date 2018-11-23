@@ -136,6 +136,7 @@ int create_file(char *name)
     inode_arr[next_avl_inode].filesize = 0;
 
     dir_map[filename] = next_avl_inode;
+    inode_to_file_map[next_avl_inode] = filename;
 
     file_inode_mapping_arr[next_avl_inode].inode_num = next_avl_inode;
     strcpy(file_inode_mapping_arr[next_avl_inode].file_name, name);
@@ -174,7 +175,9 @@ int delete_file(char *name)
     strcpy(file_inode_mapping_arr[cur_inode].file_name, emptyname);
     file_inode_mapping_arr[cur_inode].inode_num = -1;
 
+    inode_to_file_map.erase(dir_map[filename]);
     dir_map.erase(filename);
+
 
     cout << "File Deleted successfully :) " << endl;
 
