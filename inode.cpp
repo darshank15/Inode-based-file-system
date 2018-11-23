@@ -198,7 +198,7 @@ int unmount_disk()
     {
         sb.inode_freelist[free_inode_vector[i]] = false;
     }
-    free_inode_vector.clear();
+   
     int len;
     /* storing super block structure in starting of virtual disk */
     fseek(diskptr, 0, SEEK_SET);
@@ -224,8 +224,15 @@ int unmount_disk()
     memcpy(inode_buff, inode_arr, len);
     fwrite(inode_buff, sizeof(char), len, diskptr);
 
-    //close all open fd
-
+    //clear all in-memory data structures
+    free_inode_vector.clear();
+    free_data_block_vector.clear();
+    free_filedescriptor_vector.clear();
+    file_descriptor_mode_map.clear();
+    file_descriptor_map.clear();
+    dir_map.clear();
+    inode_to_file_map.clear();
+    
     cout << "Disk Unmounted!!!" << endl;
     fclose(diskptr);
 
@@ -352,14 +359,10 @@ int user_handle()
         case 3:
             cout << "Enter filedescriptor to read : " << endl;
             cin >> fd;
-            char *initial_buf_pos;
             // int k;
             // cout << "Enter size to read in kb" << endl;
             // cin >> k;
-            read_file(fd, initial_buf_pos);
-            cout << initial_buf_pos << endl;
-            cout.flush();
-            cout << endl << "File read successfully " << endl;
+            read_file(fd);
             cin.clear();
             cout.flush();
             break;

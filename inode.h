@@ -78,23 +78,23 @@ extern int openfile_count;                           // keeps track of number of
 extern map<int, pair<int, int>> file_descriptor_map; // fd->(inode,file_seek_ptr) Stores files Descriptor as key and corresponding Inode number(First) and file pointer.
 extern map<int, int> file_descriptor_mode_map;       // fd->mode [ 0:read, 1:write, 2: append ]
 extern FILE *diskptr;
-extern map<int, string> inode_to_file_map; // indoe-> filename inode to file mapping
+extern map<int, string> inode_to_file_map;           // indoe-> filename inode to file mapping
 /******************************************************************************/
 
 /******************************************************************************/
 // Methods to be implemented.
 
-int create_disk(char *name);                  /* create an empty, virtual disk file          */
-int mount_disk(char *name);                   /* open a virtual disk (file)                  */
-int unmount_disk();                           /* close a previously opened disk (file)       */
-int open_file(char *name);                    /* open file to get its file descriptor        */
-int close_file(int fd);                       /* close the file                              */
-int block_read(int block, char *buf);         /* read block */
-int create_file(char *name);                  /* to create file */
-int delete_file(char *name);                  /* to delete file */
-int write_into_file(int fd);                  /* to write content into file */
-int read_file(int fd, char *buf);             /* to read content from file */
-int erase_inode_content(int cur_inode);       /* to erase inode content */
+int create_disk(char *name);            /* create an empty, virtual disk file          */
+int mount_disk(char *name);             /* open a virtual disk (file)                  */
+int unmount_disk();                     /* close a previously opened disk (file)       */
+int open_file(char *name);              /* open file to get its file descriptor        */
+int close_file(int fd);                 /* close the file                              */
+int block_read(int block, char *buf);   /* read block */
+int create_file(char *name);            /* to create file */
+int delete_file(char *name);            /* to delete file */
+int write_into_file(int fd, int mode);  /* to write content into file */
+int read_file(int fd);                  /* to read content from file */
+int erase_inode_content(int cur_inode); /* to erase inode content */
 /******************************************************************************/
 
 #endif

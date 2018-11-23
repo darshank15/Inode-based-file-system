@@ -136,7 +136,6 @@ int create_file(char *name)
     inode_arr[next_avl_inode].filesize = 0;
 
     dir_map[filename] = next_avl_inode;
-    inode_to_file_map[next_avl_inode] = filename;
 
     file_inode_mapping_arr[next_avl_inode].inode_num = next_avl_inode;
     strcpy(file_inode_mapping_arr[next_avl_inode].file_name, name);
@@ -175,7 +174,6 @@ int delete_file(char *name)
     strcpy(file_inode_mapping_arr[cur_inode].file_name, emptyname);
     file_inode_mapping_arr[cur_inode].inode_num = -1;
 
-    inode_to_file_map.erase(dir_map[filename]);
     dir_map.erase(filename);
 
     cout << "File Deleted successfully :) " << endl;
@@ -255,8 +253,9 @@ int close_file(int fd)
     return 1;
 }
 
-int read_file(int fd, char *initial_buf_pos)
+int read_file(int fd)
 {
+    
     
     if (file_descriptor_map.find(fd) == file_descriptor_map.end())
     {
@@ -277,8 +276,9 @@ int read_file(int fd, char *initial_buf_pos)
     int cur_inode = file_descriptor_map[fd].first;
     struct inode in = inode_arr[cur_inode];
     int filesize = in.filesize;
-    initial_buf_pos = new char[filesize];
-    char *buf=initial_buf_pos;
+    char *buf;
+    buf = new char[filesize];
+    char *initial_buf_pos=buf;
 
     int noOfBlocks = ceil(((float)inode_arr[cur_inode].filesize) / BLOCK_SIZE);
     int tot_block = noOfBlocks; // tot_block = numner of blocks to read and noOfBlocks = blocks left to read
@@ -402,6 +402,9 @@ int read_file(int fd, char *initial_buf_pos)
     
     initial_buf_pos[bytes_read]='\0';
     cout.flush();
+    cout << initial_buf_pos << endl;
+    cout.flush();
+    cout << endl<<"File read successfully " << endl;
     return 1;
 }
 
