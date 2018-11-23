@@ -23,6 +23,12 @@ int create_disk(char *disk_name)
 {
     char buffer[BLOCK_SIZE];
 
+    if(access( disk_name, F_OK ) != -1)
+    {
+        cout << string(RED) << "Virtual Disk already exists !!!" << string(DEFAULT) << endl;
+        return -1;
+    }
+
     diskptr = fopen(disk_name, "wb");
     memset(buffer, 0, BLOCK_SIZE); // intialize null buffer
 
