@@ -253,7 +253,7 @@ int close_file(int fd)
     return 1;
 }
 
-int read_file(int fd, char *buf)
+int read_file(int fd, char *initial_buf_pos)
 {
     
     if (file_descriptor_map.find(fd) == file_descriptor_map.end())
@@ -275,8 +275,8 @@ int read_file(int fd, char *buf)
     int cur_inode = file_descriptor_map[fd].first;
     struct inode in = inode_arr[cur_inode];
     int filesize = in.filesize;
-    buf = new char[filesize];
-    char *initial_buf_pos=buf;
+    initial_buf_pos = new char[filesize];
+    char *buf=initial_buf_pos;
 
     int noOfBlocks = ceil(((float)inode_arr[cur_inode].filesize) / BLOCK_SIZE);
     int tot_block = noOfBlocks; // tot_block = numner of blocks to read and noOfBlocks = blocks left to read

@@ -320,11 +320,14 @@ int user_handle()
         case 3:
             cout << "Enter filedescriptor to read : " << endl;
             cin >> fd;
-            char *buf;
+            char *initial_buf_pos;
             // int k;
             // cout << "Enter size to read in kb" << endl;
             // cin >> k;
-            read_file(fd, buf);
+            read_file(fd, initial_buf_pos);
+            cout << initial_buf_pos << endl;
+            cout.flush();
+            cout << endl << "File read successfully " << endl;
             cin.clear();
             cout.flush();
             break;
