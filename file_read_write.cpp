@@ -41,13 +41,10 @@ int _block_write(int block, char *buf, int size, int start_position)
     return 0;
 }
 
-void _write_into_file(int fd, char *buff, int len)
+int _write_into_file(int fd, char *buff, int len, int *bytes_written)
 {
-    //TEMP : ERROR Handling : File disk full then give error.
-    // NUM OF BYTES SUCCESSFULLY WRITTEN shoud be return.
 
     int cur_pos = file_descriptor_map[fd].second;
-
     int filled_data_block = cur_pos / BLOCK_SIZE;
     int file_inode = file_descriptor_map[fd].first;
 
@@ -61,6 +58,7 @@ void _write_into_file(int fd, char *buff, int len)
             _block_write(data_block_to_write, buff, len, cur_pos % BLOCK_SIZE);
             inode_arr[file_inode].filesize += len;
             file_descriptor_map[fd].second += len; //updating the cur pos in the file
+            *bytes_written += len;
         }
         /* Write file into single Indirect block */
         else if (filled_data_block < 1034)
@@ -75,6 +73,7 @@ void _write_into_file(int fd, char *buff, int len)
             _block_write(data_block_to_write, buff, len, cur_pos % BLOCK_SIZE);
             inode_arr[file_inode].filesize += len;
             file_descriptor_map[fd].second += len; //updating the cur pos in the file
+            *bytes_written += len;
         }
         /* Write file into double Indirect block */
         else
@@ -94,6 +93,7 @@ void _write_into_file(int fd, char *buff, int len)
             _block_write(data_block_to_write, buff, len, cur_pos % BLOCK_SIZE);
             inode_arr[file_inode].filesize += len;
             file_descriptor_map[fd].second += len; //updating the cur pos in the file
+            *bytes_written += len;
         }
     }
     /* if last data block is fully filled */
@@ -105,6 +105,7 @@ void _write_into_file(int fd, char *buff, int len)
             _block_write(inode_arr[file_inode].pointer[0], buff, len, 0);
             inode_arr[file_inode].filesize += len;
             file_descriptor_map[fd].second += len;
+            *bytes_written += len;
         }
         /* if filesize != 0 then */
         else
@@ -115,9 +116,11 @@ void _write_into_file(int fd, char *buff, int len)
                 if (file_descriptor_map[fd].second == 0)
                 {
                     erase_inode_content(file_inode);
-                    if(free_data_block_vector.size() <= 0){
-                        cout << "Not enough Data block available !!! :(" << endl;
-                        return;
+                    //check if datablock are available
+                    if (free_data_block_vector.size() == 0)
+                    {
+                        cout << "Write File Error : No more DataBlock available" << endl;
+                        return -1;
                     }
                     int next_avl_datablock = free_data_block_vector.back();
                     free_data_block_vector.pop_back();
@@ -126,11 +129,18 @@ void _write_into_file(int fd, char *buff, int len)
                 _block_write(inode_arr[file_inode].pointer[0], buff, len, 0);
                 inode_arr[file_inode].filesize += len;
                 file_descriptor_map[fd].second += len;
+                *bytes_written += len;
             }
             else
             {
                 if (filled_data_block < 10)
                 {
+                    //check if datablock are available
+                    if (free_data_block_vector.size() == 0)
+                    {
+                        cout << "Write File Error : No more DataBlock available" << endl;
+                        return -1;
+                    }
                     int data_block_to_write = free_data_block_vector.back();
                     free_data_block_vector.pop_back();
                     inode_arr[file_inode].pointer[filled_data_block] = data_block_to_write;
@@ -138,6 +148,7 @@ void _write_into_file(int fd, char *buff, int len)
                     _block_write(data_block_to_write, buff, len, cur_pos % BLOCK_SIZE);
                     inode_arr[file_inode].filesize += len;
                     file_descriptor_map[fd].second += len; //updating the cur pos in the file
+                    *bytes_written += len;
                 }
                 else if (filled_data_block < 1034)
                 {
@@ -148,6 +159,12 @@ void _write_into_file(int fd, char *buff, int len)
                             block_pointers[i] = -1;
 
                         /* to store block_pointers[1024] into db_for_single_indirect */
+                        //check if datablock are available
+                        if (free_data_block_vector.size() == 0)
+                        {
+                            cout << "Write File Error : No more DataBlock available" << endl;
+                            return -1;
+                        }
                         int data_block_single_indirect = free_data_block_vector.back();
                         free_data_block_vector.pop_back();
 
@@ -164,6 +181,12 @@ void _write_into_file(int fd, char *buff, int len)
                     block_read(block, read_buf);                        //reading the single indirect block into read_buf
                     memcpy(block_pointers, read_buf, sizeof(read_buf)); //moving the data into blockPointer
 
+                    //check if datablock are available
+                    if (free_data_block_vector.size() == 0)
+                    {
+                        cout << "Write File Error : No more DataBlock available" << endl;
+                        return -1;
+                    }
                     int data_block_to_write = free_data_block_vector.back();
                     free_data_block_vector.pop_back();
 
@@ -177,6 +200,7 @@ void _write_into_file(int fd, char *buff, int len)
                     _block_write(data_block_to_write, buff, len, 0);
                     inode_arr[file_inode].filesize += len;
                     file_descriptor_map[fd].second += len; //updating the cur pos in the file
+                    *bytes_written += len;
                 }
                 else
                 {
@@ -186,7 +210,12 @@ void _write_into_file(int fd, char *buff, int len)
                         int block_pointers[1024];
                         for (int i = 0; i < 1024; ++i)
                             block_pointers[i] = -1;
-
+                        //check if datablock are available
+                        if (free_data_block_vector.size() == 0)
+                        {
+                            cout << "Write File Error : No more DataBlock available" << endl;
+                            return -1;
+                        }
                         int data_block_double_indirect = free_data_block_vector.back(); //to store block_pointers[1024] into db_for_double_indirect
                         free_data_block_vector.pop_back();
 
@@ -207,7 +236,12 @@ void _write_into_file(int fd, char *buff, int len)
                         int block_pointers2[1024];
                         for (int i = 0; i < 1024; ++i)
                             block_pointers2[i] = -1;
-
+                        //check if datablock are available
+                        if (free_data_block_vector.size() == 0)
+                        {
+                            cout << "Write File Error : No more DataBlock available" << endl;
+                            return -1;
+                        }
                         int data_block_double_indirect2 = free_data_block_vector.back(); //to store block_pointers[1024] into db_for_double_indirect
                         free_data_block_vector.pop_back();
 
@@ -232,6 +266,12 @@ void _write_into_file(int fd, char *buff, int len)
                     block_read(block2, read_buf2); //reading the block2 into read_buf2
                     memcpy(block_pointers2, read_buf2, BLOCK_SIZE);
 
+                    //check if datablock are available
+                    if (free_data_block_vector.size() == 0)
+                    {
+                        cout << "Write File Error : No more DataBlock available" << endl;
+                        return -1;
+                    }
                     int data_block_to_write = free_data_block_vector.back(); //to store block_pointers[1024] into db_for_double_indirect
                     free_data_block_vector.pop_back();
                     block_pointers2[(filled_data_block - 1034) % 1024] = data_block_to_write;
@@ -245,10 +285,12 @@ void _write_into_file(int fd, char *buff, int len)
                     //updating the filesize
                     inode_arr[file_inode].filesize += len;
                     file_descriptor_map[fd].second += len; //updating the cur pos in the file
+                    *bytes_written += len;
                 }
             }
         }
     }
+    return 0;
 }
 
 int write_into_file(int fd)
@@ -283,6 +325,7 @@ int write_into_file(int fd)
 
     string x = user_input();
     x = x.substr(1);
+    int bytes_written = 0;
 
     //checking how many in last DB have space remaing to store data
     unsigned int remaining_size_in_last_written_data_block = BLOCK_SIZE - ((file_descriptor_map[fd].second) % BLOCK_SIZE);
@@ -295,7 +338,7 @@ int write_into_file(int fd)
         memset(buff, 0, len);
         memcpy(buff, x.c_str(), len);
         buff[len] = '\0';
-        _write_into_file(fd, buff, len);
+        _write_into_file(fd, buff, len, &bytes_written);
     }
     else
     {
@@ -305,7 +348,7 @@ int write_into_file(int fd)
         memset(buff, 0, len);
         memcpy(buff, x.c_str(), len);
         buff[len] = '\0';
-        _write_into_file(fd, buff, len);
+        _write_into_file(fd, buff, len, &bytes_written);
         x = x.substr(len);
 
         //write block by block till last block
@@ -318,7 +361,11 @@ int write_into_file(int fd)
             memcpy(buff, x.c_str(), len);
             buff[len] = '\0';
             x = x.substr(len);
-            _write_into_file(fd, buff, len);
+            if (_write_into_file(fd, buff, len, &bytes_written) == -1)
+            {
+                cout << "No Enough space. Only " << bytes_written << " bytes written." << endl;
+                return -1;
+            };
         }
 
         //write last partial block
@@ -328,8 +375,12 @@ int write_into_file(int fd)
         memset(buff1, 0, len);
         memcpy(buff1, x.c_str(), len);
         buff1[len] = '\0';
-        _write_into_file(fd, buff1, len);
+        if (_write_into_file(fd, buff1, len, &bytes_written) == -1)
+        {
+            cout << "No Enough space. Only " << bytes_written << " bytes written." << endl;
+            return -1;
+        };
     }
-
+    cout << bytes_written << " bytes written. \nFile Written Successfully." << endl;
     return 0;
 }
