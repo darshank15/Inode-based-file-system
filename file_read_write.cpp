@@ -45,7 +45,7 @@ void _write_into_file(int fd, char *buff, int len)
 {
     //TEMP : ERROR Handling : File disk full then give error.
     // NUM OF BYTES SUCCESSFULLY WRITTEN shoud be return.
-    // ALREADY WRITTEN file should be deleted. 
+
     int cur_pos = file_descriptor_map[fd].second;
 
     int filled_data_block = cur_pos / BLOCK_SIZE;
@@ -111,8 +111,18 @@ void _write_into_file(int fd, char *buff, int len)
         {
             if (cur_pos == 0)
             {
-                // flush all data blocks and start writting into file from first block.
-                // flush data blocks task remaining
+                /* flush all data blocks and start writting into file from first block */
+                if (file_descriptor_map[fd].second == 0)
+                {
+                    erase_inode_content(file_inode);
+                    if(free_data_block_vector.size() <= 0){
+                        cout << "Not enough Data block available !!! :(" << endl;
+                        return;
+                    }
+                    int next_avl_datablock = free_data_block_vector.back();
+                    free_data_block_vector.pop_back();
+                    inode_arr[file_inode].pointer[0] = next_avl_datablock;
+                }
                 _block_write(inode_arr[file_inode].pointer[0], buff, len, 0);
                 inode_arr[file_inode].filesize += len;
                 file_descriptor_map[fd].second += len;
@@ -216,8 +226,6 @@ void _write_into_file(int fd, char *buff, int len)
                     block_read(block, read_buf); //reading the block into read_buf
                     memcpy(block_pointers, read_buf, BLOCK_SIZE);
 
-                    //#####################################################
-
                     int block2 = block_pointers[(filled_data_block - 1034) / 1024];
                     int block_pointers2[1024]; //Contains the array of data block pointers.
                     char read_buf2[BLOCK_SIZE];
@@ -274,12 +282,7 @@ int write_into_file(int fd)
     }
 
     string x = user_input();
-    // cout << x << endl;
-    // cin.clear();
-    // cout.flush();
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////////////
+    x = x.substr(1);
 
     //checking how many in last DB have space remaing to store data
     unsigned int remaining_size_in_last_written_data_block = BLOCK_SIZE - ((file_descriptor_map[fd].second) % BLOCK_SIZE);
