@@ -119,7 +119,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                     //check if datablock are available
                     if (free_data_block_vector.size() == 0)
                     {
-                        cout << "Write File Error : No more DataBlock available" << endl;
+                        cout << string(RED) << "Write File Error : No more DataBlock available" << string(DEFAULT) << endl;
                         return -1;
                     }
                     int next_avl_datablock = free_data_block_vector.back();
@@ -138,7 +138,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                     //check if datablock are available
                     if (free_data_block_vector.size() == 0)
                     {
-                        cout << "Write File Error : No more DataBlock available" << endl;
+                        cout << string(RED) << "Write File Error : No more DataBlock available" << string(DEFAULT) << endl;
                         return -1;
                     }
                     int data_block_to_write = free_data_block_vector.back();
@@ -162,7 +162,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                         //check if datablock are available
                         if (free_data_block_vector.size() == 0)
                         {
-                            cout << "Write File Error : No more DataBlock available" << endl;
+                            cout << string(RED) << "Write File Error : No more DataBlock available" << string(DEFAULT) << endl;
                             return -1;
                         }
                         int data_block_single_indirect = free_data_block_vector.back();
@@ -184,7 +184,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                     //check if datablock are available
                     if (free_data_block_vector.size() == 0)
                     {
-                        cout << "Write File Error : No more DataBlock available" << endl;
+                        cout << string(RED) << "Write File Error : No more DataBlock available" << string(DEFAULT) << endl;
                         return -1;
                     }
                     int data_block_to_write = free_data_block_vector.back();
@@ -213,7 +213,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                         //check if datablock are available
                         if (free_data_block_vector.size() == 0)
                         {
-                            cout << "Write File Error : No more DataBlock available" << endl;
+                            cout << string(RED) << "Write File Error : No more DataBlock available" << string(DEFAULT) << endl;
                             return -1;
                         }
                         int data_block_double_indirect = free_data_block_vector.back(); //to store block_pointers[1024] into db_for_double_indirect
@@ -239,7 +239,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                         //check if datablock are available
                         if (free_data_block_vector.size() == 0)
                         {
-                            cout << "Write File Error : No more DataBlock available" << endl;
+                            cout << string(RED) << "Write File Error : No more DataBlock available" << string(DEFAULT) << endl;
                             return -1;
                         }
                         int data_block_double_indirect2 = free_data_block_vector.back(); //to store block_pointers[1024] into db_for_double_indirect
@@ -269,7 +269,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                     //check if datablock are available
                     if (free_data_block_vector.size() == 0)
                     {
-                        cout << "Write File Error : No more DataBlock available" << endl;
+                        cout << string(RED) << "Write File Error : No more DataBlock available" << string(DEFAULT) << endl;
                         return -1;
                     }
                     int data_block_to_write = free_data_block_vector.back(); //to store block_pointers[1024] into db_for_double_indirect
@@ -299,7 +299,7 @@ int write_into_file(int fd, int mode)
     //check if file exist or not
     if (file_descriptor_map.find(fd) == file_descriptor_map.end())
     {
-        cout << "Write File Error : File descriptor " << fd << " doesn't exist !!!" << endl;
+        cout << string(RED) << "Write File Error : File descriptor " << fd << " doesn't exist !!!" << string(DEFAULT) << endl;
         return -1;
     }
 
@@ -310,7 +310,7 @@ int write_into_file(int fd, int mode)
         /* Write  */
         if (file_descriptor_mode_map[fd] != 1)
         {
-            cout << "Write File Error : File descriptor " << fd << " is not opened in write mode!!!" << endl;
+            cout << string(RED) << "Write File Error : File descriptor " << fd << " is not opened in write mode!!!" << string(DEFAULT) << endl;
             return -1;
         }
 
@@ -330,7 +330,7 @@ int write_into_file(int fd, int mode)
         /* Append */
         if (file_descriptor_mode_map[fd] != 2)
         {
-            cout << "Append File Error : File descriptor " << fd << " is not opened in append mode!!!" << endl;
+            cout << string(RED) << "Append File Error : File descriptor " << fd << " is not opened in append mode!!!" << string(DEFAULT) << endl;
             return -1;
         }
         file_descriptor_map[fd].second = inode_arr[cur_inode].filesize;
@@ -376,7 +376,7 @@ int write_into_file(int fd, int mode)
             x = x.substr(len);
             if (_write_into_file(fd, buff, len, &bytes_written) == -1)
             {
-                cout << "No Enough space. Only " << bytes_written << " bytes written." << endl;
+                cout << string(RED) << "No Enough space. Only " << bytes_written << " bytes written." << string(DEFAULT) << endl;
                 return -1;
             };
         }
@@ -390,10 +390,10 @@ int write_into_file(int fd, int mode)
         buff1[len] = '\0';
         if (_write_into_file(fd, buff1, len, &bytes_written) == -1)
         {
-            cout << "No Enough space. Only " << bytes_written << " bytes written." << endl;
+            cout << string(RED) << "No Enough space. Only " << bytes_written << " bytes written." << string(DEFAULT) << endl;
             return -1;
         };
     }
-    cout << bytes_written << " bytes written. \nFile Written Successfully." << endl;
+    cout << string(GREEN) << bytes_written << " bytes written. \nFile Written Successfully." << string(DEFAULT) << endl;
     return 0;
 }

@@ -107,21 +107,21 @@ int create_file(char *name)
     //check if file already exist in disk
     if (dir_map.find(filename) != dir_map.end())
     {
-        cout << "Create File Error : File already present !!!" << endl;
+        cout << string(RED) << "Create File Error : File already present !!!" << string(DEFAULT) << endl;
         return -1;
     }
 
     //check if inode are available
     if (free_inode_vector.size() == 0)
     {
-        cout << "Create File Error : No more Inodes available" << endl;
+        cout << string(RED) << "Create File Error : No more Inodes available" << string(DEFAULT) << endl;
         return -1;
     }
 
     //check if datablock are available
     if (free_data_block_vector.size() == 0)
     {
-        cout << "Create File Error : No more DataBlock available" << endl;
+        cout << string(RED) << "Create File Error : No more DataBlock available" << string(DEFAULT) << endl;
         return -1;
     }
 
@@ -141,7 +141,7 @@ int create_file(char *name)
     file_inode_mapping_arr[next_avl_inode].inode_num = next_avl_inode;
     strcpy(file_inode_mapping_arr[next_avl_inode].file_name, name);
 
-    cout << "File Successfully Created :) " << endl;
+    cout << string(GREEN) << "File Successfully Created :) " << string(DEFAULT) << endl;
     return 1;
 }
 
@@ -152,7 +152,7 @@ int delete_file(char *name)
     //check if file exist or not
     if (dir_map.find(filename) == dir_map.end())
     {
-        cout << "Delete File Error : File doesn't exist !!!" << endl;
+        cout << string(RED) << "Delete File Error : File doesn't exist !!!" << string(DEFAULT) << endl;
         return -1;
     }
 
@@ -163,7 +163,7 @@ int delete_file(char *name)
     {
         if (file_descriptor_map.find(i) != file_descriptor_map.end() && file_descriptor_map[i].first == cur_inode)
         {
-            cout << "Delete File Error : File is opened, Can not delete an opened file !!!" << endl;
+            cout << string(RED) << "Delete File Error : File is opened, Can not delete an opened file !!!" << string(DEFAULT) << endl;
             return -1;
         }
     }
@@ -178,8 +178,7 @@ int delete_file(char *name)
     inode_to_file_map.erase(dir_map[filename]);
     dir_map.erase(filename);
 
-
-    cout << "File Deleted successfully :) " << endl;
+    cout << string(GREEN) << "File Deleted successfully :) " << string(DEFAULT) << endl;
 
     return 0;
 }
@@ -189,24 +188,24 @@ int open_file(char *name)
     string filename = string(name);
     if (dir_map.find(filename) == dir_map.end())
     {
-        cout << "Open File Error : File not found !!!" << endl;
+        cout << string(RED) << "Open File Error : File not found !!!" << string(DEFAULT) << endl;
         return -1;
     }
 
     if (free_filedescriptor_vector.size() == 0)
     {
-        cout << "Open File Error : File descriptor not available !!!" << endl;
+        cout << string(RED) << "Open File Error : File descriptor not available !!!" << string(DEFAULT) << endl;
         return -1;
     }
     /* asking for mode of file  */
     int file_mode = -1;
     do
     {
-        cout << "0: read mode\n1: write mode\n2: append mode\n";
+        cout << "0 : read mode\n1 : write mode\n2 : append mode\n";
         cin >> file_mode;
         if (file_mode < 0 || file_mode > 2)
         {
-            cout << "Please make valid choice" << endl;
+            cout << string(RED) << "Please make valid choice" << string(DEFAULT) << endl;
         }
     } while (file_mode < 0 || file_mode > 2);
 
@@ -221,7 +220,7 @@ int open_file(char *name)
                 file_descriptor_map[i].first == cur_inode &&
                 (file_descriptor_mode_map[i] == 1 || file_descriptor_mode_map[i] == 2))
             {
-                cout << "File is already in use with file descriptor : " << i << endl;
+                cout << string(RED) << "File is already in use with file descriptor : " << i << string(DEFAULT) << endl;
                 return -1;
             }
         }
@@ -235,7 +234,7 @@ int open_file(char *name)
     file_descriptor_mode_map[fd] = file_mode;
     openfile_count++;
 
-    cout << "File " << filename << " opened with file descriptor  : " << fd << endl;
+    cout << string(GREEN) << "File " << filename << " opened with file descriptor  : " << fd << string(DEFAULT) << endl;
 
     return fd;
 }
@@ -244,7 +243,7 @@ int close_file(int fd)
 {
     if (file_descriptor_map.find(fd) == file_descriptor_map.end())
     {
-        cout << "close File Error : file is not opened yet !!!" << endl;
+        cout << string(RED) << "close File Error : file is not opened yet !!!" << string(DEFAULT) << endl;
         return -1;
     }
 
@@ -252,27 +251,26 @@ int close_file(int fd)
     file_descriptor_mode_map.erase(fd);
     openfile_count--;
     free_filedescriptor_vector.push_back(fd);
-    cout << "File closed successfully :) " << endl;
+    cout << string(GREEN) << "File closed successfully :) " << string(DEFAULT) << endl;
     return 1;
 }
 
 int read_file(int fd)
 {
-    
-    
+
     if (file_descriptor_map.find(fd) == file_descriptor_map.end())
     {
-        cout << "Read File Error : file is not opened yet !!!" << endl;
+        cout << string(RED) << "Read File Error : file is not opened yet !!!" << string(DEFAULT) << endl;
         return -1;
     }
 
     if (file_descriptor_mode_map[fd] != 0)
     {
-        cout << "Read File Error : file with descriptor " << fd << " is not opened in read mode !!!" << endl;
+        cout << string(RED) << "Read File Error : file with descriptor " << fd << " is not opened in read mode !!!" << string(DEFAULT) << endl;
         return -1;
     }
 
-    int bytes_read=0;
+    int bytes_read = 0;
     bool partial_read = false;
     int fs = file_descriptor_map[fd].second;
 
@@ -281,7 +279,7 @@ int read_file(int fd)
     int filesize = in.filesize;
     char *buf;
     buf = new char[filesize];
-    char *initial_buf_pos=buf;
+    char *initial_buf_pos = buf;
 
     int noOfBlocks = ceil(((float)inode_arr[cur_inode].filesize) / BLOCK_SIZE);
     int tot_block = noOfBlocks; // tot_block = numner of blocks to read and noOfBlocks = blocks left to read
@@ -307,9 +305,10 @@ int read_file(int fd)
                 partial_read = true;
                 bytes_read += BLOCK_SIZE - fs % BLOCK_SIZE;
             }
-            else{
-        
-                memcpy(buf, read_buf, BLOCK_SIZE );
+            else
+            {
+
+                memcpy(buf, read_buf, BLOCK_SIZE);
                 buf = buf + BLOCK_SIZE;
                 bytes_read += BLOCK_SIZE;
             }
@@ -335,15 +334,16 @@ int read_file(int fd)
             {
                 if (partial_read == false)
                 {
-                  
+
                     memcpy(buf, read_buf + (fs % BLOCK_SIZE), (BLOCK_SIZE - fs % BLOCK_SIZE));
                     buf = buf + (BLOCK_SIZE - fs % BLOCK_SIZE);
                     partial_read = true;
                     bytes_read += BLOCK_SIZE - fs % BLOCK_SIZE;
                 }
-                else{
-                   
-                    memcpy(buf, read_buf, BLOCK_SIZE );
+                else
+                {
+
+                    memcpy(buf, read_buf, BLOCK_SIZE);
                     buf = buf + BLOCK_SIZE;
                     bytes_read += BLOCK_SIZE;
                 }
@@ -374,19 +374,19 @@ int read_file(int fd)
                 {
                     if (partial_read == false)
                     {
-                     
+
                         memcpy(buf, read_buf + (fs % BLOCK_SIZE), (BLOCK_SIZE - fs % BLOCK_SIZE));
                         buf = buf + (BLOCK_SIZE - fs % BLOCK_SIZE);
                         partial_read = true;
                         bytes_read += BLOCK_SIZE - fs % BLOCK_SIZE;
                     }
-                    else{
-                     
-                        memcpy(buf, read_buf, BLOCK_SIZE );
-                        buf = buf + BLOCK_SIZE;       
+                    else
+                    {
+
+                        memcpy(buf, read_buf, BLOCK_SIZE);
+                        buf = buf + BLOCK_SIZE;
                         bytes_read += BLOCK_SIZE;
                     }
-                
                 }
                 noOfBlocks--;
             }
@@ -402,12 +402,12 @@ int read_file(int fd)
         memcpy(buf, read_buf + (fs % BLOCK_SIZE), (inode_arr[cur_inode].filesize) % BLOCK_SIZE - fs % BLOCK_SIZE);
         bytes_read += (inode_arr[cur_inode].filesize) % BLOCK_SIZE - fs % BLOCK_SIZE;
     }
-    
-    initial_buf_pos[bytes_read]='\0';
+
+    initial_buf_pos[bytes_read] = '\0';
     cout.flush();
     cout << initial_buf_pos << endl;
     cout.flush();
-    cout << endl<<"File read successfully " << endl;
+    cout << string(GREEN) << "File read successfully " << string(DEFAULT) << endl;
     return 1;
 }
 

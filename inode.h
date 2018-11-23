@@ -97,4 +97,11 @@ int read_file(int fd);                  /* to read content from file */
 int erase_inode_content(int cur_inode); /* to erase inode content */
 /******************************************************************************/
 
+#define RED "\033[1;31m"
+#define GREEN "\033[1;32m"
+#define BLUE "\033[1;34m"
+#define BOLD "\033[1m"
+#define DEFAULT "\033[0m"
+
+
 #endif
