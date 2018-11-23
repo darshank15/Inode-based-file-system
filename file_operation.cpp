@@ -400,9 +400,6 @@ int read_file(int fd, char *initial_buf_pos)
     
     initial_buf_pos[bytes_read]='\0';
     cout.flush();
-    cout << initial_buf_pos << endl;
-    cout.flush();
-    cout << endl<<"File read successfully " << endl;
     return 1;
 }
 
