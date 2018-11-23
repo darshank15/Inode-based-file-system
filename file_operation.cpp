@@ -252,22 +252,22 @@ int read_file(int fd, char *buf, int kbytes)
     buf = new char[kbytes];
     memset(buf, 0, kbytes);
     char *initial_buf_pos = buf;
-
-    int noOfBlocks = ceil(((float)inode_arr[cur_inode].filesize) / BLOCK_SIZE);
+ 
+    int noOfBlocks = ceil(((float)in.filesize) / BLOCK_SIZE);
     int tot_block = noOfBlocks; // tot_block = numner of blocks to read and noOfBlocks = blocks left to read
     char read_buf[BLOCK_SIZE];
 
-    char dest_filename[20];
-    strcpy(dest_filename, file_inode_mapping_arr[cur_inode].file_name);
+    // char dest_filename[20];
+    // strcpy(dest_filename, file_inode_mapping_arr[cur_inode].file_name);
     // FILE *fp1 = fopen(dest_filename, "wb+");
 
     for (int i = 0; i < 10; i++)
     {
-        cout << "direct-------------------" << i << endl;
         if (noOfBlocks == 0)
         {
             break;
         }
+        cout << "direct-------------------" << i << endl;
         int block_no = in.pointer[i];
 
         block_read(block_no, read_buf);
@@ -289,6 +289,10 @@ int read_file(int fd, char *buf, int kbytes)
                 memcpy(buf, read_buf, BLOCK_SIZE);
                 buf = buf + BLOCK_SIZE;
                 bytes_read += BLOCK_SIZE;
+            }
+            if(bytes_read >= kbytes-BLOCK_SIZE)
+            {
+                noOfBlocks=2;
             }
         }
 
@@ -389,8 +393,8 @@ int read_file(int fd, char *buf, int kbytes)
     cout.flush();
     cout << initial_buf_pos << endl;
     cout.flush();
-    cout << "File read successfully." << endl;
-    //file_descriptor_map[fd].second = file_descriptor_map[fd].second + kbytes;
+    cout << "File read successfully with bytes: "<<bytes_read<< endl;
+    file_descriptor_map[fd].second = file_descriptor_map[fd].second + bytes_read;
 
     // fclose(fp1);
     return 0;
