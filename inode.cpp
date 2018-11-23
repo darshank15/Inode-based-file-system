@@ -79,14 +79,14 @@ int create_disk(char *disk_name)
     fwrite(inode_buff, sizeof(char), len, diskptr);
 
     fclose(diskptr);
-    cout << "\nVirtual Disk Created!!!" << endl;
+    cout << string(GREEN) << "Virtual Disk Created!!!" << string(DEFAULT) << endl;
 
     return 1;
 }
 
 void printall()
 {
-    cout << "File-inode-Mapping" << endl;
+    cout << string(BOLD) << "File-inode-Mapping" << string(DEFAULT) << endl;
     for (auto it : file_inode_mapping_arr)
     {
         cout << it.file_name << " : " << it.inode_num << endl;
@@ -114,7 +114,7 @@ int mount_disk(char *name)
     diskptr = fopen(disk_name, "rb+");
     if (diskptr == NULL)
     {
-        cout << "Disk does not exist :(" << endl;
+        cout << string(RED) << "Disk does not exist :(" << string(DEFAULT) << endl;
         return 0;
     }
     int len;
@@ -163,7 +163,7 @@ int mount_disk(char *name)
         free_filedescriptor_vector.push_back(i);
     }
 
-    cout << "Disk is mounted!!!" << endl;
+    cout << string(GREEN) << "Disk is mounted!!!" << string(DEFAULT) << endl;
     active = 1;
     return 1;
 }
@@ -172,7 +172,7 @@ int unmount_disk()
 {
     if (!active)
     {
-        fprintf(stderr, "close_disk: no open disk\n");
+        cout << string(RED) << "close_disk: no open disk" << string(DEFAULT) << endl;
         return -1;
     }
 
@@ -198,7 +198,7 @@ int unmount_disk()
     {
         sb.inode_freelist[free_inode_vector[i]] = false;
     }
-   
+
     int len;
     /* storing super block structure in starting of virtual disk */
     fseek(diskptr, 0, SEEK_SET);
@@ -232,8 +232,8 @@ int unmount_disk()
     file_descriptor_map.clear();
     dir_map.clear();
     inode_to_file_map.clear();
-    
-    cout << "Disk Unmounted!!!" << endl;
+
+    cout << string(GREEN) << "Disk Unmounted!!!" << string(DEFAULT) << endl;
     fclose(diskptr);
 
     active = 0;
@@ -242,64 +242,75 @@ int unmount_disk()
 
 int block_read(int block, char *buf)
 {
+    cout << string(RED);
     if (!active)
     {
         fprintf(stderr, "block_read: disk not active\n");
+        cout << string(DEFAULT);
         return -1;
     }
 
     if ((block < 0) || (block >= DISK_BLOCKS))
     {
         fprintf(stderr, "block_read: block index out of bounds\n");
+        cout << string(DEFAULT);
         return -1;
     }
 
     if (fseek(diskptr, block * BLOCK_SIZE, SEEK_SET) < 0)
     {
         perror("block_read: failed to lseek");
+        cout << string(DEFAULT);
         return -1;
     }
 
     if (fread(buf, sizeof(char), BLOCK_SIZE, diskptr) < 0)
     {
         perror("block_read: failed to read");
+        cout << string(DEFAULT);
         return -1;
     }
-
+    cout << string(DEFAULT);
     return 0;
 }
 
 int block_write(int block, char *buf)
 {
+    cout << string(RED);
     if (!active)
     {
         fprintf(stderr, "block_write: disk not active\n");
+        cout << string(DEFAULT);
         return -1;
     }
 
     if ((block < 0) || (block >= DISK_BLOCKS))
     {
         fprintf(stderr, "block_write: block index out of bounds\n");
+        cout << string(DEFAULT);
         return -1;
     }
 
     if (fseek(diskptr, block * BLOCK_SIZE, SEEK_SET) < 0)
     {
         perror("block_write: failed to lseek");
+        cout << string(DEFAULT);
         return -1;
     }
 
     if (fwrite(buf, sizeof(char), BLOCK_SIZE, diskptr) < 0)
     {
         perror("block_write: failed to write");
+        cout << string(DEFAULT);
         return -1;
     }
-
+    cout << string(DEFAULT);
     return 0;
 }
 
 void print_list_open_files()
 {
+    cout << string(BOLD) << "### List of opened files ###" << string(DEFAULT) << endl;
     for (auto i : file_descriptor_map)
     {
         int fd = i.first;
@@ -317,6 +328,7 @@ void print_list_open_files()
 
 void print_list_files()
 {
+    cout << string(BOLD) << "### List of All files ###" << string(DEFAULT) << endl;
     for (auto i : dir_map)
     {
         cout << i.first << " with inode : " << i.second << endl;
@@ -331,33 +343,33 @@ int user_handle()
     while (1)
     {
         cout << "=========================" << endl;
-        cout << "1 create file" << endl;
-        cout << "2 open file" << endl;
-        cout << "3 read file" << endl;
-        cout << "4 write file" << endl;
-        cout << "5 append file" << endl;
-        cout << "6 close file" << endl;
-        cout << "7 delete file" << endl;
-        cout << "8 list of files" << endl;
-        cout << "9 list of opened files" << endl;
-        cout << "10 to unmount" << endl;
+        cout << "1 : create file" << endl;
+        cout << "2 : open file" << endl;
+        cout << "3 : read file" << endl;
+        cout << "4 : write file" << endl;
+        cout << "5 : append file" << endl;
+        cout << "6 : close file" << endl;
+        cout << "7 : delete file" << endl;
+        cout << "8 : list of files" << endl;
+        cout << "9 : list of opened files" << endl;
+        cout << "10: unmount" << endl;
         cout << "=========================" << endl;
         cin.clear();
         cin >> choice;
         switch (choice)
         {
         case 1:
-            cout << "Enter filename to create" << endl;
+            cout << "Enter filename to create : ";
             cin >> filename;
             create_file(filename);
             break;
         case 2:
-            cout << "Enter filename to open" << endl;
+            cout << "Enter filename to open : ";
             cin >> filename;
             open_file(filename);
             break;
         case 3:
-            cout << "Enter filedescriptor to read : " << endl;
+            cout << "Enter filedescriptor to read : ";
             cin >> fd;
             // int k;
             // cout << "Enter size to read in kb" << endl;
@@ -367,26 +379,26 @@ int user_handle()
             cout.flush();
             break;
         case 4:
-            cout << "Enter filedescriptor to write : " << endl;
+            cout << "Enter filedescriptor to write : ";
             cin >> fd;
             write_into_file(fd, 1);
             cin.clear();
             cout.flush();
             break;
         case 5:
-            cout << "Enter filedescriptor to append : " << endl;
+            cout << "Enter filedescriptor to append : ";
             cin >> fd;
             write_into_file(fd, 2);
             cin.clear();
             cout.flush();
             break;
         case 6:
-            cout << "Enter filedescriptor to close" << endl;
+            cout << "Enter filedescriptor to close : ";
             cin >> fd;
             close_file(fd);
             break;
         case 7:
-            cout << "Enter filename to delete" << endl;
+            cout << "Enter filename to delete : ";
             cin >> filename;
             delete_file(filename);
             break;
@@ -400,6 +412,10 @@ int user_handle()
             unmount_disk();
             return 0;
             break;
+        default:
+            cout << string(RED) << "Please make valid choice." << string(DEFAULT) << endl;
+            cin.clear();
+            break;
         }
     }
 }
@@ -408,29 +424,33 @@ int main()
     int choice;
     while (1)
     {
-        cout << "1 to create disk" << endl;
-        cout << "2 to mount disk" << endl;
-        cout << "9 to exit" << endl;
+        cout << "1 : create disk" << endl;
+        cout << "2 : mount disk" << endl;
+        cout << "9 : exit" << endl;
+        cin.clear();
         cin >> choice;
         if (choice == 9)
+        {
+            cout << string(GREEN) << "Thank You!!!" << string(DEFAULT) << endl;
             break;
-        cout << "Enter diskname : " << endl;
-        cin >> disk_name;
+        }
         switch (choice)
         {
         case 1:
+            cout << "Enter diskname : " << endl;
+            cin >> disk_name;
             create_disk(disk_name);
             break;
         case 2:
+            cout << "Enter diskname : " << endl;
+            cin >> disk_name;
             if (mount_disk(disk_name))
             {
                 user_handle();
             }
             break;
-        case 9:
-            break;
         default:
-            cout << "Please make valid choice" << endl;
+            cout << string(RED) << "Please make valid choice." << string(DEFAULT) << endl;
             break;
         }
     }
