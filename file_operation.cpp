@@ -93,7 +93,7 @@ int erase_inode_content(int cur_inode)
     }
 
     //Resetting inode structure with default values.
-    for (int i = 0; i <= 11; ++i)
+    for (int i = 0; i < 12; ++i)
     {
         inode_arr[cur_inode].pointer[i] = -1;
     }
@@ -244,7 +244,7 @@ int read_file(int fd, char *buf, int kbytes)
     int bytes_read = 0;
     bool partial_read = false;
     int fs = file_descriptor_map[fd].second;
-    cout << "**********************" << fs << "@@@@@@@@@@@@@@@@@@@@@@" << endl;
+    // cout << "**********************" << fs << "@@@@@@@@@@@@@@@@@@@@@@" << endl;
     int cur_inode = file_descriptor_map[fd].first;
     struct inode in = inode_arr[cur_inode];
     // int filesize = in.filesize;
@@ -267,7 +267,7 @@ int read_file(int fd, char *buf, int kbytes)
         {
             break;
         }
-        cout << "direct-------------------" << i << endl;
+        // cout << "direct-------------------" << i << endl;
         int block_no = in.pointer[i];
 
         block_read(block_no, read_buf);
@@ -310,7 +310,7 @@ int read_file(int fd, char *buf, int kbytes)
         int i = 0;
         while (noOfBlocks && i < 1024)
         {
-            cout << "single indirect-------------------" << i << endl;
+            // cout << "single indirect-------------------" << i << endl;
             block_read(blockPointers[i++], read_buf);
 
             if (tot_block - noOfBlocks >= fs / BLOCK_SIZE && noOfBlocks > 1)
@@ -346,7 +346,7 @@ int read_file(int fd, char *buf, int kbytes)
         int i = 0;
         while (noOfBlocks && i < 1024)
         {
-            cout << "double indirect-------------------" << i << endl;
+            // cout << "double indirect-------------------" << i << endl;
             block_read(indirectPointers[i++], read_buf);
             int blockPointers[1024];
             memcpy(blockPointers, read_buf, sizeof(read_buf));
