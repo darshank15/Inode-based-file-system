@@ -181,7 +181,7 @@ int delete_file(char *name)
     return 0;
 }
 
-int open_file(char *name, int file_mode)
+int open_file(char *name)
 {
     string filename = string(name);
     if (dir_map.find(filename) == dir_map.end())
@@ -195,8 +195,35 @@ int open_file(char *name, int file_mode)
         cout << "Open File Error : File descriptor not available !!!" << endl;
         return -1;
     }
+    /* asking for mode of file  */
+    int file_mode = -1;
+    do
+    {
+        cout << "0: read mode\n1: write mode\n2: append mode\n";
+        cin >> file_mode;
+        if (file_mode < 0 || file_mode > 2)
+        {
+            cout << "Please make valid choice" << endl;
+        }
+    } while (file_mode < 0 || file_mode > 2);
 
     int cur_inode = dir_map[filename];
+
+    /* checking if file is already open in write or append mode. */
+    if (file_mode == 1 || file_mode == 2)
+    {
+        for (int i = 0; i < NO_OF_FILE_DESCRIPTORS; i++)
+        {
+            if (file_descriptor_map.find(i) != file_descriptor_map.end() &&
+                file_descriptor_map[i].first == cur_inode &&
+                (file_descriptor_mode_map[i] == 1 || file_descriptor_mode_map[i] == 2))
+            {
+                cout << "File is already in use with file descriptor : " << i << endl;
+                return -1;
+            }
+        }
+    }
+
     int fd = free_filedescriptor_vector.back();
     free_filedescriptor_vector.pop_back();
 
@@ -252,7 +279,7 @@ int read_file(int fd, char *buf, int kbytes)
     buf = new char[kbytes];
     memset(buf, 0, kbytes);
     char *initial_buf_pos = buf;
- 
+
     int noOfBlocks = ceil(((float)in.filesize) / BLOCK_SIZE);
     int tot_block = noOfBlocks; // tot_block = numner of blocks to read and noOfBlocks = blocks left to read
     char read_buf[BLOCK_SIZE];
@@ -290,9 +317,9 @@ int read_file(int fd, char *buf, int kbytes)
                 buf = buf + BLOCK_SIZE;
                 bytes_read += BLOCK_SIZE;
             }
-            if(bytes_read >= kbytes-BLOCK_SIZE)
+            if (bytes_read >= kbytes - BLOCK_SIZE)
             {
-                noOfBlocks=2;
+                noOfBlocks = 2;
             }
         }
 
@@ -393,7 +420,7 @@ int read_file(int fd, char *buf, int kbytes)
     cout.flush();
     cout << initial_buf_pos << endl;
     cout.flush();
-    cout << "File read successfully with bytes: "<<bytes_read<< endl;
+    cout << "File read successfully with bytes: " << bytes_read << endl;
     file_descriptor_map[fd].second = file_descriptor_map[fd].second + bytes_read;
 
     // fclose(fp1);

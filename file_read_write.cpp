@@ -293,7 +293,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
     return 0;
 }
 
-int write_into_file(int fd)
+int write_into_file(int fd, int mode)
 {
 
     //check if file exist or not
@@ -305,22 +305,35 @@ int write_into_file(int fd)
 
     //getting inode of file
     int cur_inode = file_descriptor_map[fd].first;
-
-    if (file_descriptor_mode_map[fd] != 1)
+    if (mode == 1)
     {
-        cout << "Write File Error : File descriptor " << fd << " is not opened in write mode!!!" << endl;
-        return -1;
-    }
-
-    // Make All read pointers at start of file.[ set second elem of pair to 0 ]
-    for (int i = 0; i < NO_OF_FILE_DESCRIPTORS; i++)
-    {
-        if (file_descriptor_map.find(i) != file_descriptor_map.end() &&
-            file_descriptor_map[i].first == cur_inode &&
-            file_descriptor_mode_map[i] == 0)
+        /* Write  */
+        if (file_descriptor_mode_map[fd] != 1)
         {
-            file_descriptor_map[i].second = 0;
+            cout << "Write File Error : File descriptor " << fd << " is not opened in write mode!!!" << endl;
+            return -1;
         }
+
+        // Make All read pointers at start of file.[ set second elem of pair to 0 ]
+        for (int i = 0; i < NO_OF_FILE_DESCRIPTORS; i++)
+        {
+            if (file_descriptor_map.find(i) != file_descriptor_map.end() &&
+                file_descriptor_map[i].first == cur_inode &&
+                file_descriptor_mode_map[i] == 0)
+            {
+                file_descriptor_map[i].second = 0;
+            }
+        }
+    }
+    else
+    {
+        /* Append */
+        if (file_descriptor_mode_map[fd] != 2)
+        {
+            cout << "Append File Error : File descriptor " << fd << " is not opened in append mode!!!" << endl;
+            return -1;
+        }
+        file_descriptor_map[fd].second = inode_arr[cur_inode].filesize;
     }
 
     string x = user_input();
