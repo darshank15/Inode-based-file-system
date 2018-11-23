@@ -353,10 +353,10 @@ int user_handle()
             cout << "Enter filedescriptor to read : " << endl;
             cin >> fd;
             char *buf;
-            int k;
-            cout << "Enter size to read in kb" << endl;
-            cin >> k;
-            read_file(fd, buf, k);
+            // int k;
+            // cout << "Enter size to read in kb" << endl;
+            // cin >> k;
+            read_file(fd, buf);
             cin.clear();
             cout.flush();
             break;
