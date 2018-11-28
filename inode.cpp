@@ -15,7 +15,7 @@ vector<int> free_filedescriptor_vector;       //denote free filedescriptor.
 int openfile_count = 0;                       //keeps track of number of files opened.
 map<int, pair<int, int>> file_descriptor_map; //Stores files Descriptor as key and corresponding Inode number(First) and file pointer.
 map<int, int> file_descriptor_mode_map;       //Stores mode in which file descriptor is used
-map<int, string> inode_to_file_map;           // indoe-> filename inode to file mapping
+map<int, string> inode_to_file_map;           //inode-> filename inode to file mapping
 FILE *diskptr;
 /******************************************************************************/
 

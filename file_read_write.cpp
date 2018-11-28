@@ -378,7 +378,7 @@ int write_into_file(int fd, int mode)
             {
                 cout << string(RED) << "No Enough space. Only " << bytes_written << " bytes written." << string(DEFAULT) << endl;
                 return -1;
-            };
+            }
         }
 
         //write last partial block
@@ -392,8 +392,164 @@ int write_into_file(int fd, int mode)
         {
             cout << string(RED) << "No Enough space. Only " << bytes_written << " bytes written." << string(DEFAULT) << endl;
             return -1;
-        };
+        }
     }
     cout << string(GREEN) << bytes_written << " bytes written. \nFile Written Successfully." << string(DEFAULT) << endl;
     return 0;
+}
+
+int read_file(int fd)
+{
+
+    if (file_descriptor_map.find(fd) == file_descriptor_map.end())
+    {
+        cout << string(RED) << "Read File Error : file is not opened yet !!!" << string(DEFAULT) << endl;
+        return -1;
+    }
+
+    if (file_descriptor_mode_map[fd] != 0)
+    {
+        cout << string(RED) << "Read File Error : file with descriptor " << fd << " is not opened in read mode !!!" << string(DEFAULT) << endl;
+        return -1;
+    }
+
+    int bytes_read = 0;
+    bool partial_read = false;
+    int fs = file_descriptor_map[fd].second;
+
+    int cur_inode = file_descriptor_map[fd].first;
+    struct inode in = inode_arr[cur_inode];
+    int filesize = in.filesize;
+    char *buf;
+    buf = new char[filesize];
+    char *initial_buf_pos = buf;
+
+    int noOfBlocks = ceil(((float)inode_arr[cur_inode].filesize) / BLOCK_SIZE);
+    int tot_block = noOfBlocks; // tot_block = numner of blocks to read and noOfBlocks = blocks left to read
+    char read_buf[BLOCK_SIZE];
+
+    for (int i = 0; i < 10; i++)
+    {
+
+        if (noOfBlocks == 0)
+        {
+            break;
+        }
+        int block_no = in.pointer[i];
+
+        block_read(block_no, read_buf);
+
+        if ((tot_block - noOfBlocks >= fs / BLOCK_SIZE) && (noOfBlocks > 1))
+        {
+            if (partial_read == false)
+            {
+                memcpy(buf, read_buf + (fs % BLOCK_SIZE), (BLOCK_SIZE - fs % BLOCK_SIZE));
+                buf = buf + (BLOCK_SIZE - fs % BLOCK_SIZE);
+                partial_read = true;
+                bytes_read += BLOCK_SIZE - fs % BLOCK_SIZE;
+            }
+            else
+            {
+
+                memcpy(buf, read_buf, BLOCK_SIZE);
+                buf = buf + BLOCK_SIZE;
+                bytes_read += BLOCK_SIZE;
+            }
+        }
+
+        noOfBlocks--;
+    }
+
+    if (noOfBlocks) //Just to check any single indirect pointers are used or not
+    {
+
+        int block = inode_arr[cur_inode].pointer[10];
+        int blockPointers[1024]; //Contains the array of data block pointers.
+        block_read(block, read_buf);
+        memcpy(blockPointers, read_buf, sizeof(read_buf));
+
+        int i = 0;
+        while (noOfBlocks && i < 1024)
+        {
+            block_read(blockPointers[i++], read_buf);
+
+            if (tot_block - noOfBlocks >= fs / BLOCK_SIZE && noOfBlocks > 1)
+            {
+                if (partial_read == false)
+                {
+
+                    memcpy(buf, read_buf + (fs % BLOCK_SIZE), (BLOCK_SIZE - fs % BLOCK_SIZE));
+                    buf = buf + (BLOCK_SIZE - fs % BLOCK_SIZE);
+                    partial_read = true;
+                    bytes_read += BLOCK_SIZE - fs % BLOCK_SIZE;
+                }
+                else
+                {
+
+                    memcpy(buf, read_buf, BLOCK_SIZE);
+                    buf = buf + BLOCK_SIZE;
+                    bytes_read += BLOCK_SIZE;
+                }
+            }
+
+            noOfBlocks--;
+        }
+    }
+
+    if (noOfBlocks) //Indirect pointers done check for Double Indirect
+    {
+        int block = inode_arr[cur_inode].pointer[11];
+        int indirectPointers[1024]; //Contains array of indirect pointers
+        block_read(block, read_buf);
+        memcpy(indirectPointers, read_buf, sizeof(read_buf));
+        int i = 0;
+        while (noOfBlocks && i < 1024)
+        {
+            block_read(indirectPointers[i++], read_buf);
+            int blockPointers[1024];
+            memcpy(blockPointers, read_buf, sizeof(read_buf));
+            int j = 0;
+            while (noOfBlocks && j < 1024)
+            {
+                block_read(blockPointers[j++], read_buf);
+
+                if (tot_block - noOfBlocks >= fs / BLOCK_SIZE && noOfBlocks > 1)
+                {
+                    if (partial_read == false)
+                    {
+
+                        memcpy(buf, read_buf + (fs % BLOCK_SIZE), (BLOCK_SIZE - fs % BLOCK_SIZE));
+                        buf = buf + (BLOCK_SIZE - fs % BLOCK_SIZE);
+                        partial_read = true;
+                        bytes_read += BLOCK_SIZE - fs % BLOCK_SIZE;
+                    }
+                    else
+                    {
+
+                        memcpy(buf, read_buf, BLOCK_SIZE);
+                        buf = buf + BLOCK_SIZE;
+                        bytes_read += BLOCK_SIZE;
+                    }
+                }
+                noOfBlocks--;
+            }
+        }
+    }
+    if (tot_block - fs / BLOCK_SIZE > 1)
+    {
+        memcpy(buf, read_buf, (inode_arr[cur_inode].filesize) % BLOCK_SIZE);
+        bytes_read += (inode_arr[cur_inode].filesize) % BLOCK_SIZE;
+    }
+    else if (tot_block - fs / BLOCK_SIZE == 1)
+    {
+        memcpy(buf, read_buf + (fs % BLOCK_SIZE), (inode_arr[cur_inode].filesize) % BLOCK_SIZE - fs % BLOCK_SIZE);
+        bytes_read += (inode_arr[cur_inode].filesize) % BLOCK_SIZE - fs % BLOCK_SIZE;
+    }
+
+    initial_buf_pos[bytes_read] = '\0';
+    cout.flush();
+    cout << initial_buf_pos << endl;
+    cout.flush();
+    cout << string(GREEN) << "File read successfully " << string(DEFAULT) << endl;
+    return 1;
 }
