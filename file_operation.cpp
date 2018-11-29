@@ -105,7 +105,7 @@ int create_file(char *name)
 {
     string filename = string(name);
     //check if file already exist in disk
-    if (dir_map.find(filename) != dir_map.end())
+    if (file_to_inode_map.find(filename) != file_to_inode_map.end())
     {
         cout << string(RED) << "Create File Error : File already present !!!" << string(DEFAULT) << endl;
         return -1;
@@ -135,7 +135,7 @@ int create_file(char *name)
     inode_arr[next_avl_inode].pointer[0] = next_avl_datablock;
     inode_arr[next_avl_inode].filesize = 0;
 
-    dir_map[filename] = next_avl_inode;
+    file_to_inode_map[filename] = next_avl_inode;
     inode_to_file_map[next_avl_inode] = filename;
 
     file_inode_mapping_arr[next_avl_inode].inode_num = next_avl_inode;
@@ -150,14 +150,14 @@ int delete_file(char *name)
     string filename = string(name);
 
     //check if file exist or not
-    if (dir_map.find(filename) == dir_map.end())
+    if (file_to_inode_map.find(filename) == file_to_inode_map.end())
     {
         cout << string(RED) << "Delete File Error : File doesn't exist !!!" << string(DEFAULT) << endl;
         return -1;
     }
 
     //getting inode of file
-    int cur_inode = dir_map[filename];
+    int cur_inode = file_to_inode_map[filename];
 
     for (int i = 0; i < NO_OF_FILE_DESCRIPTORS; i++)
     {
@@ -175,8 +175,8 @@ int delete_file(char *name)
     strcpy(file_inode_mapping_arr[cur_inode].file_name, emptyname);
     file_inode_mapping_arr[cur_inode].inode_num = -1;
 
-    inode_to_file_map.erase(dir_map[filename]);
-    dir_map.erase(filename);
+    inode_to_file_map.erase(file_to_inode_map[filename]);
+    file_to_inode_map.erase(filename);
 
     cout << string(GREEN) << "File Deleted successfully :) " << string(DEFAULT) << endl;
 
@@ -186,7 +186,7 @@ int delete_file(char *name)
 int open_file(char *name)
 {
     string filename = string(name);
-    if (dir_map.find(filename) == dir_map.end())
+    if (file_to_inode_map.find(filename) == file_to_inode_map.end())
     {
         cout << string(RED) << "Open File Error : File not found !!!" << string(DEFAULT) << endl;
         return -1;
@@ -209,7 +209,7 @@ int open_file(char *name)
         }
     } while (file_mode < 0 || file_mode > 2);
 
-    int cur_inode = dir_map[filename];
+    int cur_inode = file_to_inode_map[filename];
 
     /* checking if file is already open in write or append mode. */
     if (file_mode == 1 || file_mode == 2)

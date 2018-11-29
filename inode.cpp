@@ -8,7 +8,7 @@ struct super_block sb;
 struct file_to_inode_mapping file_inode_mapping_arr[NO_OF_INODES];
 struct inode inode_arr[NO_OF_INODES];
 
-map<string, int> dir_map;                     //file name as key maps to inode (value)
+map<string, int> file_to_inode_map;           //file name as key maps to inode (value)
 vector<int> free_inode_vector;                //denote free inodes
 vector<int> free_data_block_vector;           //denote free data blocks
 vector<int> free_filedescriptor_vector;       //denote free filedescriptor.
@@ -152,7 +152,7 @@ int mount_disk(char *name)
     for (int i = NO_OF_INODES - 1; i >= 0; --i)
         if (sb.inode_freelist[i] == true)
         {
-            dir_map[string(file_inode_mapping_arr[i].file_name)] = file_inode_mapping_arr[i].inode_num;
+            file_to_inode_map[string(file_inode_mapping_arr[i].file_name)] = file_inode_mapping_arr[i].inode_num;
             inode_to_file_map[file_inode_mapping_arr[i].inode_num] = string(file_inode_mapping_arr[i].file_name);
         }
         else
@@ -236,7 +236,7 @@ int unmount_disk()
     free_filedescriptor_vector.clear();
     file_descriptor_mode_map.clear();
     file_descriptor_map.clear();
-    dir_map.clear();
+    file_to_inode_map.clear();
     inode_to_file_map.clear();
 
     cout << string(GREEN) << "Disk Unmounted!!!" << string(DEFAULT) << endl;
@@ -280,43 +280,33 @@ int block_read(int block, char *buf)
     return 0;
 }
 
-int block_write(int block, char *buf)
+int block_write(int block, char *buf, int size, int start_position)
 {
-    cout << string(RED);
-    if (!active)
-    {
-        fprintf(stderr, "block_write: disk not active\n");
-        cout << string(DEFAULT);
-        return -1;
-    }
 
     if ((block < 0) || (block >= DISK_BLOCKS))
     {
         fprintf(stderr, "block_write: block index out of bounds\n");
-        cout << string(DEFAULT);
         return -1;
     }
 
-    if (fseek(diskptr, block * BLOCK_SIZE, SEEK_SET) < 0)
+    if (fseek(diskptr, (block * BLOCK_SIZE) + start_position, SEEK_SET) < 0)
     {
         perror("block_write: failed to lseek");
-        cout << string(DEFAULT);
         return -1;
     }
 
-    if (fwrite(buf, sizeof(char), BLOCK_SIZE, diskptr) < 0)
+    if (fwrite(buf, sizeof(char), size, diskptr) < 0)
     {
         perror("block_write: failed to write");
-        cout << string(DEFAULT);
         return -1;
     }
-    cout << string(DEFAULT);
+
     return 0;
 }
 
 void print_list_open_files()
 {
-    cout << string(BOLD) << "### List of opened files ###" << string(DEFAULT) << endl;
+    cout << string(GREEN) << "List of opened files " << string(DEFAULT) << endl;
     for (auto i : file_descriptor_map)
     {
         int fd = i.first;
@@ -334,8 +324,8 @@ void print_list_open_files()
 
 void print_list_files()
 {
-    cout << string(BOLD) << "### List of All files ###" << string(DEFAULT) << endl;
-    for (auto i : dir_map)
+    cout << string(GREEN) << "List of All files" << string(DEFAULT) << endl;
+    for (auto i : file_to_inode_map)
     {
         cout << i.first << " with inode : " << i.second << endl;
     }
@@ -425,6 +415,7 @@ int user_handle()
         }
     }
 }
+
 int main()
 {
     int choice;

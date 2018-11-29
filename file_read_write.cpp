@@ -17,30 +17,6 @@ string user_input()
     return s;
 }
 
-int _block_write(int block, char *buf, int size, int start_position)
-{
-
-    if ((block < 0) || (block >= DISK_BLOCKS))
-    {
-        fprintf(stderr, "block_write: block index out of bounds\n");
-        return -1;
-    }
-
-    if (fseek(diskptr, (block * BLOCK_SIZE) + start_position, SEEK_SET) < 0)
-    {
-        perror("block_write: failed to lseek");
-        return -1;
-    }
-
-    if (fwrite(buf, sizeof(char), size, diskptr) < 0)
-    {
-        perror("block_write: failed to write");
-        return -1;
-    }
-
-    return 0;
-}
-
 int _write_into_file(int fd, char *buff, int len, int *bytes_written)
 {
 
@@ -55,7 +31,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
         if (filled_data_block < 10)
         {
             int data_block_to_write = inode_arr[file_inode].pointer[filled_data_block];
-            _block_write(data_block_to_write, buff, len, cur_pos % BLOCK_SIZE);
+            block_write(data_block_to_write, buff, len, cur_pos % BLOCK_SIZE);
             inode_arr[file_inode].filesize += len;
             file_descriptor_map[fd].second += len; //updating the cur pos in the file
             *bytes_written += len;
@@ -70,7 +46,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
             memcpy(block_pointers, read_buf, sizeof(read_buf));
 
             int data_block_to_write = block_pointers[filled_data_block - 10];
-            _block_write(data_block_to_write, buff, len, cur_pos % BLOCK_SIZE);
+            block_write(data_block_to_write, buff, len, cur_pos % BLOCK_SIZE);
             inode_arr[file_inode].filesize += len;
             file_descriptor_map[fd].second += len; //updating the cur pos in the file
             *bytes_written += len;
@@ -90,7 +66,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
             memcpy(block_pointers2, read_buf, sizeof(read_buf));
 
             int data_block_to_write = block_pointers[(filled_data_block - 1034) / 1024];
-            _block_write(data_block_to_write, buff, len, cur_pos % BLOCK_SIZE);
+            block_write(data_block_to_write, buff, len, cur_pos % BLOCK_SIZE);
             inode_arr[file_inode].filesize += len;
             file_descriptor_map[fd].second += len; //updating the cur pos in the file
             *bytes_written += len;
@@ -102,7 +78,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
         /* if filesize = 0 means file is empty then start writting into file from first direct block. */
         if (inode_arr[file_descriptor_map[fd].first].filesize == 0)
         {
-            _block_write(inode_arr[file_inode].pointer[0], buff, len, 0);
+            block_write(inode_arr[file_inode].pointer[0], buff, len, 0);
             inode_arr[file_inode].filesize += len;
             file_descriptor_map[fd].second += len;
             *bytes_written += len;
@@ -126,7 +102,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                     free_data_block_vector.pop_back();
                     inode_arr[file_inode].pointer[0] = next_avl_datablock;
                 }
-                _block_write(inode_arr[file_inode].pointer[0], buff, len, 0);
+                block_write(inode_arr[file_inode].pointer[0], buff, len, 0);
                 inode_arr[file_inode].filesize += len;
                 file_descriptor_map[fd].second += len;
                 *bytes_written += len;
@@ -145,7 +121,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                     free_data_block_vector.pop_back();
                     inode_arr[file_inode].pointer[filled_data_block] = data_block_to_write;
 
-                    _block_write(data_block_to_write, buff, len, cur_pos % BLOCK_SIZE);
+                    block_write(data_block_to_write, buff, len, cur_pos % BLOCK_SIZE);
                     inode_arr[file_inode].filesize += len;
                     file_descriptor_map[fd].second += len; //updating the cur pos in the file
                     *bytes_written += len;
@@ -172,7 +148,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                         char temp_buf[BLOCK_SIZE];
                         memcpy(temp_buf, block_pointers, BLOCK_SIZE);
 
-                        _block_write(data_block_single_indirect, temp_buf, BLOCK_SIZE, 0);
+                        block_write(data_block_single_indirect, temp_buf, BLOCK_SIZE, 0);
                     }
 
                     int block = inode_arr[file_inode].pointer[10];
@@ -194,10 +170,10 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                     block_pointers[filled_data_block - 10] = data_block_to_write;
                     char temp_buf[BLOCK_SIZE];
                     memcpy(temp_buf, block_pointers, BLOCK_SIZE);
-                    _block_write(block, temp_buf, BLOCK_SIZE, 0);
+                    block_write(block, temp_buf, BLOCK_SIZE, 0);
 
                     //write data into DB
-                    _block_write(data_block_to_write, buff, len, 0);
+                    block_write(data_block_to_write, buff, len, 0);
                     inode_arr[file_inode].filesize += len;
                     file_descriptor_map[fd].second += len; //updating the cur pos in the file
                     *bytes_written += len;
@@ -223,7 +199,7 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                         char temp_buf[BLOCK_SIZE];
                         memcpy(temp_buf, block_pointers, BLOCK_SIZE);
 
-                        _block_write(data_block_double_indirect, temp_buf, BLOCK_SIZE, 0);
+                        block_write(data_block_double_indirect, temp_buf, BLOCK_SIZE, 0);
                     }
                     if ((filled_data_block - 1034) % 1024 == 0) //i.e if filled_data_block is multiple of 1024 means need new DB to be assigned
                     {
@@ -248,10 +224,10 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                         block_pointers[(filled_data_block - 1034) / 1024] = data_block_double_indirect2;
                         char temp_buf[BLOCK_SIZE];
                         memcpy(temp_buf, block_pointers2, BLOCK_SIZE);
-                        _block_write(data_block_double_indirect2, temp_buf, BLOCK_SIZE, 0);
+                        block_write(data_block_double_indirect2, temp_buf, BLOCK_SIZE, 0);
 
                         memcpy(temp_buf, block_pointers, BLOCK_SIZE);
-                        _block_write(block, temp_buf, BLOCK_SIZE, 0);
+                        block_write(block, temp_buf, BLOCK_SIZE, 0);
                     }
 
                     int block = inode_arr[file_inode].pointer[11];
@@ -275,12 +251,12 @@ int _write_into_file(int fd, char *buff, int len, int *bytes_written)
                     int data_block_to_write = free_data_block_vector.back(); //to store block_pointers[1024] into db_for_double_indirect
                     free_data_block_vector.pop_back();
                     block_pointers2[(filled_data_block - 1034) % 1024] = data_block_to_write;
-                    _block_write(data_block_to_write, buff, len, 0); //writing data into db_to_write DB
+                    block_write(data_block_to_write, buff, len, 0); //writing data into db_to_write DB
 
                     //now restore block_pointers2 back to the block2
                     char temp_buf[BLOCK_SIZE];
                     memcpy(temp_buf, block_pointers2, BLOCK_SIZE);
-                    _block_write(block2, temp_buf, BLOCK_SIZE, 0);
+                    block_write(block2, temp_buf, BLOCK_SIZE, 0);
 
                     //updating the filesize
                     inode_arr[file_inode].filesize += len;

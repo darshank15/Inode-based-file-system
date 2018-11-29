@@ -75,7 +75,7 @@ extern struct inode inode_arr[NO_OF_INODES];
 
 extern FILE *diskptr;
 extern int openfile_count;                           // keeps track of number of files opened.
-extern map<string, int> dir_map;                     // filename->inode file name as key maps to inode (value)
+extern map<string, int> file_to_inode_map;           // filename->inode file name as key maps to inode (value)
 extern map<int, string> inode_to_file_map;           // indoe-> filename inode to file mapping
 
 extern vector<int> free_inode_vector;                // denote free inodes
@@ -97,6 +97,8 @@ int unmount_disk();                     /* close a previously opened disk (file)
 int open_file(char *name);              /* open file to get its file descriptor        */
 int close_file(int fd);                 /* close the file                              */
 int block_read(int block, char *buf);   /* read block */
+int block_write(int block, char *buf, 
+        int size, int start_position);  /* Write block */
 int create_file(char *name);            /* to create file */
 int delete_file(char *name);            /* to delete file */
 int write_into_file(int fd, int mode);  /* to write content into file */
